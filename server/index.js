@@ -51,15 +51,17 @@ app.get('/', (req, res) => {
 // Error Handler
 app.use(errorHandler);
 
-// Database Connection
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.error('MongoDB Connection Error:', err));
+const connectDB = require('./config/db');
 
-// Start server if run directly
+// Start server if run directly (Local Development)
 if (require.main === module) {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+    connectDB().then(() => {
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    }).catch(err => {
+        console.error('Database connection failed', err);
+        process.exit(1);
     });
 }
 
