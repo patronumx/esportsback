@@ -14,8 +14,8 @@ const Hyperspeed = ({
     fovSpeedUp: 150,
     speedUp: 2,
     carLightsFade: 0.4,
-    totalSideLightSticks: 20,
-    lightPairsPerRoadWay: 40,
+    totalSideLightSticks: 10,
+    lightPairsPerRoadWay: 30,
     shoulderLinesWidthPercentage: 0.05,
     brokenLinesWidthPercentage: 0.1,
     brokenLinesLengthPercentage: 0.5,
@@ -348,11 +348,11 @@ const Hyperspeed = ({
         }
         this.container = container;
         this.renderer = new THREE.WebGLRenderer({
-          antialias: true, // Enabled antialias since we removed SMAA
+          antialias: false, // Optimized for performance
           alpha: true
         });
         this.renderer.setSize(container.offsetWidth, container.offsetHeight, false);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1)); // Cap pixel ratio at 1
 
         container.append(this.renderer.domElement);
 

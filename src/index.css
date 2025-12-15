@@ -1,164 +1,42 @@
 @import url('https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
-/* ===========================
-   BRAND VARIABLES
-=========================== */
+@theme {
+  --font-sans: "Onest", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Brand variables */
 :root {
   --brand-bg-color: #000000;
   /* pure black for hyperspeed bg */
   --brand-card-color: rgba(15, 23, 42, 0.95);
   /* enhanced card with more opacity */
-  --ui-zoom: 1.08;
-  /* Scale factor for zoom-in effect */
 }
 
-/* ===========================
-   GLOBAL RESET
-=========================== */
+/* Make sure the app fills the viewport */
 html,
 body,
 #root {
   height: 100%;
+  font-size: 90%; /* Scale down the entire app */
 }
 
-/* Base font + scaling */
-html {
-  scroll-behavior: smooth;
-  font-size: clamp(16px, 0.9vw + 12px, 19px);
-}
-
-@media (min-width: 1280px) {
-  html {
-    font-size: 18px;
-  }
-}
-
-@media (min-width: 1536px) {
-  html {
-    font-size: 19px;
-  }
-}
-
+/* Global font + base background */
 body {
   margin: 0;
   color: #e5e7eb;
   /* slate-200 */
-  font-family: 'Onest', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Onest', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
   background: #000000;
   /* Pure black background for hyperspeed effect */
 }
 
-/* ===========================
-   ZOOM WRAPPER
-=========================== */
-.ui-zoom {
-  transform: scale(var(--ui-zoom));
-  transform-origin: top left;
-  width: calc(100% / var(--ui-zoom));
-  overflow-x: clip;
-}
+/* Use these with Tailwind-style class names you already have in JSX */
 
-@media (max-width: 1024px) {
-  :root {
-    --ui-zoom: 1;
-  }
-
-  /* Disable zoom on mobile */
-}
-
-/* ===========================
-   NAVBAR & HEADER SPACING
-=========================== */
-.header {
-  padding: 14px 24px;
-}
-
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.nav-list {
-  display: flex;
-  align-items: center;
-  gap: clamp(22px, 1.8vw, 36px);
-  /* ideal range 24–36px */
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.nav-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  /* recommended clickable size */
-  padding: 10px 2px;
-  line-height: 1;
-  text-decoration: none;
-  transition: color 0.25s ease, transform 0.25s ease;
-}
-
-.nav-link:hover {
-  transform: translateY(-1px);
-}
-
-.nav-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  margin-left: clamp(12px, 1vw, 20px);
-  transition: all 0.25s ease;
-}
-
-.nav-cta:hover {
-  transform: translateY(-1px) scale(1.03);
-}
-
-.header .container {
-  padding-right: max(24px, 2vw);
-  padding-left: max(24px, 2vw);
-}
-
-/* Focus states for accessibility */
-.nav-link:focus-visible,
-.nav-cta:focus-visible {
-  outline: 2px solid #a855f7;
-  outline-offset: 2px;
-}
-
-/* Responsive navbar tweaks */
-@media (max-width: 1024px) {
-  .nav-list {
-    gap: 18px;
-  }
-
-  .nav-cta {
-    padding: 9px 16px;
-  }
-}
-
-@media (max-width: 640px) {
-  .navbar {
-    gap: 12px;
-  }
-
-  .nav-list {
-    gap: 12px;
-  }
-}
-
-/* ===========================
-   BRAND BACKGROUNDS
-=========================== */
 .bg-brand-bg {
   background: transparent;
+  /* Let the hyperspeed background show through */
 }
 
 .bg-brand-card {
@@ -173,15 +51,13 @@ body {
     inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
-/* ===========================
-   CONTENT & TEXT ENHANCEMENTS
-=========================== */
+/* Enhanced styles for content over hyperspeed background */
 .hyperspeed-content {
   position: relative;
   z-index: 10;
 }
 
-/* Glow effects */
+/* Add subtle glow effects for gaming aesthetic */
 .gaming-glow-cyan {
   text-shadow: 0 0 20px rgba(3, 179, 195, 0.4);
 }
@@ -194,7 +70,7 @@ body {
   text-shadow: 0 0 20px rgba(216, 86, 191, 0.4);
 }
 
-/* Card glow */
+/* Enhanced card styles for gaming theme */
 .gaming-card-glow {
   box-shadow:
     0 8px 32px 0 rgba(0, 0, 0, 0.37),
@@ -202,7 +78,7 @@ body {
     0 0 20px rgba(3, 179, 195, 0.15);
 }
 
-/* Text readability */
+/* Enhanced text readability utilities */
 .text-enhanced {
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
   font-weight: 800;
@@ -217,7 +93,7 @@ body {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
-/* Card overlays */
+/* Enhanced card overlay for better text contrast */
 .card-overlay-dark {
   background: rgba(0, 0, 0, 0.4);
 }
@@ -231,9 +107,9 @@ body {
   border-width: 1.5px;
 }
 
-/* ===========================
-   CUSTOM SCROLLBAR
-=========================== */
+/* (Removed smooth scroll on html to keep scrolling snappy) */
+
+/* Custom Scrollbar Styles */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -255,16 +131,36 @@ body {
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
 }
 
-/* Firefox scrollbar */
+/* Firefox Scrollbar */
 * {
   scrollbar-width: thin;
   scrollbar-color: #a855f7 rgba(0, 0, 0, 0.2);
 }
 
-/* ===========================
-   NAVBAR SPECIFIC ZOOM (optional)
-=========================== */
-.nav-zoom {
-  transform: scale(1.06);
-  transform-origin: top left;
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Animations */
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  animation: gradient 6s ease infinite;
+}
+
+.bg-300\% {
+  background-size: 300% 300%;
 }

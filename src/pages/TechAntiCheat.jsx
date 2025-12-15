@@ -78,19 +78,19 @@ const TechAntiCheat = () => {
       title: "Tournament Integrity",
       challenge: "Organizers need to verify 100+ matches per event for fair play",
       solution: "Automated pattern detection + manual review dashboard for admins",
-      impact: "95% reduction in review time, caught 12 suspicious cases in PMGC coverage"
+
     },
     {
       title: "Team Protection",
       challenge: "Teams falsely accused need evidence to clear their reputation",
       solution: "Comprehensive VOD analysis with timestamped data proving legitimacy",
-      impact: "Saved 3 teams from false accusations, maintaining tournament integrity"
+
     },
     {
       title: "Community Trust",
       challenge: "Viewers question if matches are fair without transparency",
       solution: "Public anti-cheat reports + live monitoring during broadcasts",
-      impact: "85% increase in viewer trust metrics, reduced cheating accusations by 60%"
+
     }
   ];
 
@@ -99,19 +99,19 @@ const TechAntiCheat = () => {
       title: "Player Performance Tracking",
       challenge: "Coaches need data-driven insights to improve team strategy",
       solution: "AI-powered heatmaps, rotation analysis, and fight outcome predictions",
-      impact: "Teams improved win rate by 23% using our analytics in training"
+
     },
     {
       title: "Content Optimization",
       challenge: "Creators don't know which content performs best",
       solution: "Real-time analytics showing engagement, retention, and audience demographics",
-      impact: "Creators saw 45% increase in views by optimizing based on our data"
+
     },
     {
       title: "Brand ROI Measurement",
       challenge: "Brands can't measure campaign effectiveness",
       solution: "Comprehensive tracking of impressions, engagement, and conversion metrics",
-      impact: "Brands report 300% average ROI with detailed attribution tracking"
+
     }
   ];
 
@@ -120,19 +120,19 @@ const TechAntiCheat = () => {
       title: "Event Coverage Pipeline",
       challenge: "Tournaments need professional coverage delivered quickly",
       solution: "Automated ingestion → editing → distribution pipeline with 4K quality",
-      impact: "Delivered 50+ event coverages with <24hr turnaround, 10M+ views"
+
     },
     {
       title: "Creator Content Library",
       challenge: "Creators need B-roll footage and assets for production",
       solution: "Centralized asset library with searchable tags and instant downloads",
-      impact: "150+ creators access library, saving 20hrs/month per creator"
+
     },
     {
       title: "Highlight Generation",
       challenge: "Manual highlight creation takes hours per match",
       solution: "AI-powered highlight detection with automatic editing and export",
-      impact: "Reduced highlight creation time by 90%, from 4hrs to 25 minutes"
+
     }
   ];
 
@@ -141,19 +141,19 @@ const TechAntiCheat = () => {
       title: "Player Statistics Platform",
       challenge: "No centralized database for Pakistan esports player stats",
       solution: "Comprehensive database tracking 500K+ player records across all games",
-      impact: "Teams use our data for scouting, reducing recruitment time by 65%"
+
     },
     {
       title: "Tournament History",
       challenge: "Historical tournament data scattered and inaccessible",
       solution: "Unified database with searchable tournament history and results",
-      impact: "Research time reduced by 80%, powering content and analysis"
+
     },
     {
       title: "Brand Partnership Metrics",
       challenge: "Brands need historical performance data before partnerships",
       solution: "Real-time dashboard showing audience metrics and engagement trends",
-      impact: "Closed 15 brand deals faster with data-backed proposals"
+
     }
   ];
 
@@ -258,10 +258,7 @@ const TechAntiCheat = () => {
                   <p className="text-xs text-violet-400 font-semibold uppercase tracking-wider mb-2">Solution</p>
                   <p className="text-slate-200">{currentUseCases[activeUseCase].solution}</p>
                 </div>
-                <div className="bg-gradient-to-br from-emerald-900/20 to-green-900/10 border border-emerald-500/30 rounded-xl p-4">
-                  <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-2">Impact</p>
-                  <p className="text-slate-200">{currentUseCases[activeUseCase].impact}</p>
-                </div>
+
               </div>
             </motion.div>
           </div>

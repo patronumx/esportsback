@@ -1,18 +1,18 @@
 import React from 'react';
-import { Users, Video, Handshake, Film, Target, Sparkles, Zap, Globe } from 'lucide-react';
+import { Users, Video, Handshake, Film, Target, Sparkles, Zap, Globe, Cpu } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 
 const About = () => {
   const pillars = [
     {
       icon: Video,
-      label: 'Content Production',
-      desc: 'State-of-the-art studio facilities, equipment, and production support for creators to produce professional content.'
+      label: 'Media Production',
+      desc: 'State-of-the-art studio facilities and production support to showcase professional esports content.'
     },
     {
       icon: Users,
       label: 'Player Representation',
-      desc: 'Connecting unsponsored talent with teams and opportunities through professional representation and career guidance.'
+      desc: 'Connecting undiscovered talent with teams and opportunities through professional representation and career guidance.'
     },
     {
       icon: Handshake,
@@ -20,9 +20,9 @@ const About = () => {
       desc: 'Authentic collaborations between gaming communities and brands, delivering measurable results and long-term value.'
     },
     {
-      icon: Film,
-      label: 'Event Coverage',
-      desc: 'Professional tournament broadcasting and media coverage with cinematic production quality.'
+      icon: Cpu,
+      label: 'Software Production',
+      desc: 'Developing custom team portals, scouting systems, and digital tools to modernize esports management.'
     },
   ];
 
@@ -40,7 +40,7 @@ const About = () => {
     {
       icon: Zap,
       title: 'Inclusion',
-      desc: 'Building a community where every creator, player, and brand has a place to grow.'
+      desc: 'Building a community where every player, team, and brand has a place to grow.'
     },
     {
       icon: Globe,
@@ -54,7 +54,7 @@ const About = () => {
       <PageHeader
         eyebrow="About Patronum Esports"
         title="Empowering Pakistan's Esports Ecosystem"
-        subtitle="A multi-title gaming and creator-driven organization dedicated to supporting creators, representing players, covering events, and building communities across Pakistan's esports landscape."
+        subtitle="A multi-title gaming organization dedicated to representing players, covering events, and building communities across Pakistan's esports landscape."
       />
 
       <div className="max-w-6xl mx-auto px-6 lg:px-8 pb-20">
@@ -68,10 +68,13 @@ const About = () => {
               Not Competitors. <span className="text-purple-400">Enablers.</span>
             </h2>
             <p className="text-slate-300 mb-4 text-lg leading-relaxed">
-              Patronum Esports is <strong>not a competitive team</strong>—we're a support system for Pakistan's gaming community. We don't compete in tournaments; we <em>cover them</em>. We don't just build teams; we <em>represent players</em> who need a bridge to opportunity.
+              Patronum Esports is <strong>not just a competitive team</strong>—we're a support system for Pakistan's gaming community. We don't just build teams; we <em>represent players</em> who need a bridge to opportunity.
             </p>
             <p className="text-slate-300 mb-4 text-lg leading-relaxed">
-              From creators looking for production support to unsponsored players seeking representation, from brands wanting to connect with gaming audiences to events needing professional coverage—we're the connective tissue of Pakistan's esports ecosystem.
+              From unrecognized, undiscovered talent seeking representation to teams needing management tools, we are building the digital infrastructure of Pakistan's esports. We develop custom team portals, automated scouting systems, and management software that professionalizes the entire ecosystem.
+            </p>
+            <p className="text-slate-300 mb-4 text-lg leading-relaxed">
+              From brands wanting to connect with gaming audiences to events needing professional coverage—we're the connective tissue and the technology layer of Pakistan's esports ecosystem.
             </p>
             <p className="text-slate-400">
               Our mission is simple: <strong>unite gamers, uplift talent, and represent Pakistan proudly on global stages.</strong>
@@ -142,10 +145,10 @@ const About = () => {
             Built to Bridge Gaps
           </h2>
           <p className="text-slate-300 mb-4 leading-relaxed">
-            Patronum Esports started with a simple observation: Pakistan has incredible gaming talent, but many creators lack production resources, skilled players struggle to find representation, and brands don't know how to authentically connect with gaming communities.
+            Patronum Esports started with a simple observation: Pakistan has incredible gaming talent, but many skilled players struggle to find representation, and brands don't know how to authentically connect with gaming communities.
           </p>
           <p className="text-slate-300 mb-4 leading-relaxed">
-            We built Patronum to be the <strong>bridge</strong>. A platform where creators get professional production support, unsponsored players find career opportunities, brands discover authentic partnerships, and events receive world-class coverage.
+            We built Patronum to be the <strong>bridge</strong>. A platform where undiscovered talent finds career opportunities, brands discover authentic partnerships, and events receive world-class coverage.
           </p>
           <p className="text-slate-300 leading-relaxed">
             We're not here to win championships—we're here to <strong>enable others to win</strong>, to create, to grow, and to represent Pakistan's gaming culture with pride.
@@ -156,14 +159,11 @@ const About = () => {
         <div className="mt-16 bg-gradient-to-r from-white/5 to-transparent border border-purple-500/30 rounded-3xl p-8">
           <h3 className="text-xl font-bold mb-6">A Unified Ecosystem</h3>
           <p className="text-slate-300 mb-6">
-            Everything we do feeds into one goal: <strong>growing Pakistan's esports</strong>. Creators produce content that engages communities. Communities attract brands. Brands support players. Players inspire new creators. It's all connected.
+            Everything we do feeds into one goal: <strong>growing Pakistan's esports</strong>. Communities attract brands. Brands support players. Players inspire the next generation. It's all connected.
           </p>
 
           <div className="grid md:grid-cols-4 gap-6">
-            <div className="bg-purple-600/10 border border-purple-500/30 rounded-xl p-4">
-              <p className="font-bold text-purple-300 mb-2">For Creators</p>
-              <p className="text-slate-400 text-sm">Studio access, equipment, strategy, growth support</p>
-            </div>
+
             <div className="bg-violet-600/10 border border-violet-500/30 rounded-xl p-4">
               <p className="font-bold text-violet-300 mb-2">For Players</p>
               <p className="text-slate-400 text-sm">Representation, team connections, brand deals</p>
@@ -173,8 +173,12 @@ const About = () => {
               <p className="text-slate-400 text-sm">Authentic partnerships, campaigns, analytics</p>
             </div>
             <div className="bg-blue-600/10 border border-blue-500/30 rounded-xl p-4">
-              <p className="font-bold text-blue-300 mb-2">For Events</p>
-              <p className="text-slate-400 text-sm">Professional coverage, broadcasting, social content</p>
+              <p className="font-bold text-blue-300 mb-2">For Organizers</p>
+              <p className="text-slate-400 text-sm">Anti-cheat solutions, integrity monitoring, broadcast production</p>
+            </div>
+            <div className="bg-emerald-600/10 border border-emerald-500/30 rounded-xl p-4">
+              <p className="font-bold text-emerald-300 mb-2">For Teams</p>
+              <p className="text-slate-400 text-sm">Custom portals, scouting data, management tools</p>
             </div>
           </div>
         </div>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import logo from '../assets/logo.png';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -26,6 +28,7 @@ const Navbar = () => {
     // { to: '/competitive-esports', label: 'Competitive' },
     { to: '/creators-partners', label: 'Creators' },
     { to: '/brands', label: 'Brands' },
+    { to: '/talent', label: 'Talent' },
     // { to: '/events', label: 'Events' }, // handled separately for dropdown
     { to: '/tech-anti-cheat', label: 'Technology' },
     // { to: '/faq', label: 'FAQ' },
@@ -48,14 +51,16 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-700 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/30 group-hover:shadow-violet-500/60 group-hover:-translate-y-0.5 transition-all">
-              <span className="text-xl font-bold">P</span>
-            </div>
+            <img
+              src={logo}
+              alt="Patronum Logo"
+              className="w-14 h-14 mt-2 object-contain group-hover:-translate-y-0.5 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+            />
             <div className="flex flex-col">
-              <span className="text-lg font-bold tracking-tight group-hover:text-violet-200 transition-colors">
+              <span className="text-2xl font-bold tracking-tight group-hover:text-violet-200 transition-colors uppercase font-display">
                 Patronum Esports
               </span>
-              <span className="text-[10px] text-violet-400 font-medium tracking-wider uppercase">
+              <span className="text-xs text-violet-400 font-bold tracking-[0.2em] uppercase">
                 PatronumX Ecosystem
               </span>
             </div>
@@ -78,50 +83,17 @@ const Navbar = () => {
               </Link>
             ))}
 
-            {/* Events Dropdown */}
-            <div
-              className="relative group/dropdown"
-              onMouseEnter={() => setEventsDropdownOpen(true)}
-              onMouseLeave={() => setEventsDropdownOpen(false)}
+            <Link
+              to="/events/pmgc-2025"
+              className={`text-base font-medium transition-all hover:text-violet-300 relative group ${location.pathname.startsWith('/events') ? 'text-violet-400' : 'text-slate-300'
+                }`}
             >
-              <button
-                type="button"
-                className={`text-base font-medium transition-all hover:text-violet-300 relative flex items-center ${location.pathname.startsWith('/events') ? 'text-violet-400' : 'text-slate-300'
+              Events
+              <span
+                className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-300 ${location.pathname.startsWith('/events') ? 'w-full' : 'w-0 group-hover:w-full'
                   }`}
-              >
-                Events
-                <svg
-                  className={`ml-1 w-4 h-4 transition-transform duration-200 ${eventsDropdownOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-                <span
-                  className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-300 ${location.pathname.startsWith('/events') ? 'w-full' : 'w-0 group-hover/dropdown:w-full'
-                    }`}
-                ></span>
-              </button>
-              {eventsDropdownOpen && (
-                <div className="absolute left-0 top-full pt-2 w-max">
-                  <div className="bg-brand-card/98 backdrop-blur-xl shadow-xl rounded-lg py-2 z-50 min-w-[180px] border border-violet-500/30 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {eventDropdownLinks.map((subLink) => (
-                      <Link
-                        key={subLink.to}
-                        to={subLink.to}
-                        className={`block px-5 py-3 text-sm hover:bg-violet-600/20 hover:text-violet-200 transition-colors ${location.pathname === subLink.to
-                          ? 'text-violet-300 bg-violet-900/30'
-                          : 'text-slate-300'
-                          }`}
-                      >
-                        {subLink.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+              ></span>
+            </Link>
 
             {navLinks.slice(4).map((link) => (
               <Link
@@ -137,13 +109,24 @@ const Navbar = () => {
                 ></span>
               </Link>
             ))}
-            <Link
-              to="/login"
-              className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-violet-600 rounded-full text-sm font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105 hover:-translate-y-0.5"
+            {/* 
+             <Link
+              to="/team/login"
+              className="text-base font-medium text-slate-300 hover:text-violet-300 transition-colors"
             >
-              Dashboard
+              Team Login
+            </Link> 
+            */}
+
+            <Link
+              to="/pro/login"
+              className="relative px-6 py-2.5 bg-gradient-to-r from-purple-900/60 to-violet-900/60 border border-purple-500/50 rounded-full text-sm font-semibold text-purple-100 hover:shadow-lg hover:shadow-purple-500/20 group overflow-hidden transition-all cursor-pointer flex items-center justify-center"
+            >
+              <span className="relative z-10">Pro Teams</span>
+              <span className="absolute inset-0 bg-purple-500/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
             </Link>
           </div>
+
 
           {/* Mobile Hamburger Button */}
           <button
@@ -226,11 +209,20 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
+            {/* 
             <Link
-              to="/login"
-              className="block w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-violet-600 rounded-full text-center font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all mt-4"
+              to="/team/login"
+              className="block w-full text-center py-2 text-base font-medium text-slate-300 hover:text-violet-400"
             >
-              Dashboard Login
+              Team Login
+            </Link> 
+            */}
+            <Link
+              to="/pro/login"
+              className="block w-full px-6 py-3 bg-gradient-to-r from-purple-900/60 to-violet-900/60 border border-purple-500/50 rounded-full text-center font-semibold text-purple-100 mt-2 hover:bg-purple-800/50 transition-all group relative overflow-hidden"
+            >
+              <span className="relative z-10">Pro Teams</span>
+              <span className="absolute inset-0 bg-purple-500/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
             </Link>
             <Link
               to="/join-us"

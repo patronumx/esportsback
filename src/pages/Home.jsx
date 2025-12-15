@@ -106,15 +106,15 @@ const Home = () => {
                   },
                   {
                     icon: Camera,
-                    value: '50+',
-                    label: 'Media Assets Produced',
-                    desc: 'Reels, graphics, branding & production created in-house.'
+                    value: 'Day 1',
+                    label: 'Building Our Legacy',
+                    desc: 'Starting our journey to create impactful esports content.'
                   },
                   {
                     icon: Globe,
-                    value: '10K+',
-                    label: 'Monthly Reach Potential',
-                    desc: 'Community, creators, and brand visibility combined.'
+                    value: 'Join Us',
+                    label: 'Growing Community',
+                    desc: 'Be part of our foundational community members.'
                   },
                 ].map((stat, idx) => (
                   <motion.div
@@ -290,94 +290,70 @@ const Home = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 mb-12">
-          {/* Creator Growth Chart */}
+          {/* Roadmap / Vision Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white/5 border border-purple-500/20 rounded-2xl p-8"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold">Creator Growth</h3>
-              <span className="text-emerald-400 text-sm font-semibold">+85% this year</span>
+              <h3 className="text-xl font-bold">2026 Roadmap</h3>
+              <span className="text-emerald-400 text-sm font-semibold">Phase 1: Launch</span>
             </div>
 
-            {/* Simple Bar Chart */}
-            <div className="space-y-4">
+            <div className="space-y-6 relative">
+              {/* Vertical Line */}
+              <div className="absolute left-2.5 top-2 bottom-2 w-0.5 bg-purple-500/30"></div>
+
               {[
-                { month: 'Jan', value: 40, label: '40' },
-                { month: 'Mar', value: 65, label: '65' },
-                { month: 'Jun', value: 95, label: '95' },
-                { month: 'Sep', value: 120, label: '120' },
-                { month: 'Nov', value: 150, label: '150' }
+                { phase: 'Q1', title: 'Foundation', desc: 'Recruiting core staff & initial roster scouting', status: 'Active' },
+                { phase: 'Q2', title: 'Multi-Game Series', desc: 'Hosting community tournaments across multiple esports titles', status: 'Upcoming' },
+                { phase: 'Q3', title: 'Competitive Debut', desc: 'Fielding teams in major regional qualifiers', status: 'Upcoming' },
+                { phase: 'Q4', title: 'Global Expansion', desc: 'International brand partnerships & bootcamps', status: 'Upcoming' }
               ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-4">
-                  <span className="text-slate-400 text-sm w-12">{item.month}</span>
-                  <div className="flex-1 bg-slate-800/50 rounded-full h-8 overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(item.value / 150) * 100}%` }}
-                      transition={{ delay: idx * 0.1, duration: 1 }}
-                      className="h-full bg-gradient-to-r from-purple-600 to-violet-600 rounded-full flex items-center justify-end pr-3"
-                    >
-                      <span className="text-white text-xs font-bold">{item.label}</span>
-                    </motion.div>
+                <div key={idx} className="flex items-start gap-4 relative z-10">
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 bg-[#0a0a0a] ${item.status === 'Active' ? 'border-emerald-500 text-emerald-500' : 'border-purple-500/30 text-slate-600'
+                    }`}>
+                    {item.status === 'Active' && <div className="w-2 h-2 rounded-full bg-emerald-500" />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-bold text-white">{item.phase}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/5">{item.title}</span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
           </motion.div>
 
-          {/* Brand Partnership ROI */}
+          {/* Core Values Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="bg-white/5 border border-purple-500/20 rounded-2xl p-8"
           >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold">Partnership Success</h3>
-
+            <div className="sticky top-0 mb-6">
+              <h3 className="text-xl font-bold">Core Focus Areas</h3>
             </div>
 
-            {/* Circular Progress Indicators */}
-            <div className="grid grid-cols-3 gap-6">
+            {/* Circular Value Indicators */}
+            <div className="grid grid-cols-1 gap-6 h-full content-center">
               {[
-                { label: 'Campaign Success', value: 92, color: 'purple' },
-                { label: 'Brand Satisfaction', value: 88, color: 'violet' },
-                { label: 'Renewal Rate', value: 85, color: 'pink' }
-              ].map((metric, idx) => (
-                <div key={idx} className="text-center">
-                  <div className="relative w-24 h-24 mx-auto mb-3">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle
-                        cx="48"
-                        cy="48"
-                        r="40"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        fill="none"
-                        className="text-slate-800"
-                      />
-                      <motion.circle
-                        cx="48"
-                        cy="48"
-                        r="40"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        fill="none"
-                        strokeDasharray={`${2 * Math.PI * 40}`}
-                        initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
-                        animate={{ strokeDashoffset: 2 * Math.PI * 40 * (1 - metric.value / 100) }}
-                        transition={{ delay: idx * 0.2, duration: 1.5 }}
-                        className={`text-${metric.color}-500`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-2xl font-bold">{metric.value}%</span>
-                    </div>
+                { label: 'Community First', desc: 'Building a toxic-free, supportive environment for all gamers.', color: 'purple', icon: Users },
+                { label: 'Creator Empowerment', desc: 'Providing tools, studio space, and strategy to valid talent.', color: 'violet', icon: Video },
+                { label: 'Competitive Integrity', desc: 'Fair play and professional management standard.', color: 'fuchsia', icon: Award }
+              ].map((val, idx) => (
+                <div key={idx} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all">
+                  <div className={`w-12 h-12 rounded-full bg-${val.color}-500/20 flex items-center justify-center text-${val.color}-400`}>
+                    <val.icon className="w-6 h-6" />
                   </div>
-                  <p className="text-xs text-slate-400">{metric.label}</p>
+                  <div>
+                    <h4 className="font-bold text-white mb-1">{val.label}</h4>
+                    <p className="text-xs text-slate-400">{val.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -391,25 +367,27 @@ const Home = () => {
           transition={{ delay: 0.4 }}
           className="bg-gradient-to-br from-purple-900/20 to-violet-900/10 border border-purple-500/30 rounded-2xl p-8"
         >
-          <h3 className="text-2xl font-bold mb-8 text-center">Monthly Impact</h3>
+          <h3 className="text-2xl font-bold mb-8 text-center">Current Opportunities</h3>
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              { icon: Video, label: 'Content Assets Produced', value: '120+', trend: '+18%' },
-              { icon: Users, label: 'Creator Applications This Month', value: '40+', trend: '+25%' },
-              { icon: Award, label: 'Players Scouted & Trialed', value: '15+', trend: '+10%' },
-              { icon: Briefcase, label: 'Brand / Community Conversations', value: '12+', trend: '+30%' }
+              { icon: Video, label: 'Creator Program', value: 'Applications Open', status: 'Join Now' },
+              { icon: Award, label: 'Competitive Rosters', value: 'Scouting Phase', status: 'Apply' },
+              { icon: Handshake, label: 'Brand Partnerships', value: 'Foundation Tier', status: 'Available' },
+              { icon: Users, label: 'Community Access', value: 'Discord Server', status: 'Coming Soon' }
             ].map((stat, idx) => (
               <motion.div
                 key={idx}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: idx * 0.1, type: 'spring' }}
-                className="bg-white/5 border border-purple-500/20 rounded-xl p-6 text-center hover:border-purple-400/50 transition-all hover:-translate-y-1"
+                className="bg-white/5 border border-purple-500/20 rounded-xl p-6 text-center hover:border-purple-400/50 transition-all hover:-translate-y-1 group"
               >
-                <stat.icon className="w-8 h-8 text-purple-400 mx-auto mb-3" />
-                <div className="text-3xl font-bold mb-1">{stat.value}</div>
+                <stat.icon className="w-8 h-8 text-purple-400 mx-auto mb-3 group-hover:text-white transition-colors" />
+                <div className="text-xl font-bold mb-1 text-white">{stat.value}</div>
                 <div className="text-sm text-slate-400 mb-2">{stat.label}</div>
-                <div className="text-xs text-emerald-400 font-semibold">{stat.trend} growth</div>
+                <div className="inline-block px-3 py-1 bg-purple-500/20 border border-purple-500/50 rounded-full text-xs text-purple-200 font-semibold">
+                  {stat.status}
+                </div>
               </motion.div>
             ))}
           </div>
@@ -426,27 +404,33 @@ const Home = () => {
         <div className="grid md:grid-cols-3 gap-8">
           {[
             {
-              category: 'Production Quality',
-              metrics: [
-                { name: '4K Capability', value: 100 },
-                { name: 'Edit Turnaround', value: 95 },
-                { name: 'Studio Access', value: 90 }
+              category: 'Strategic Mastery',
+              features: [
+                'Interactive Map Analysis',
+                'Rotation & Path Planning',
+                'Drop Spot Heatmaps',
+                'Meta-Game Strategy',
+                'Shotcalling Frameworks'
               ]
             },
             {
-              category: 'Player Support',
-              metrics: [
-                { name: 'Team Connections', value: 88 },
-                { name: 'Contract Support', value: 92 },
-                { name: 'Career Guidance', value: 85 }
+              category: 'Advanced Analytics',
+              features: [
+                'Player Performance Data',
+                'VOD Review Systems',
+                'Opponent Pattern Tracking',
+                'Damage & Utility Stats',
+                'Win Condition Analysis'
               ]
             },
             {
-              category: 'Brand Value',
-              metrics: [
-                { name: 'Campaign ROI', value: 98 },
-                { name: 'Audience Reach', value: 94 },
-                { name: 'Engagement Rate', value: 89 }
+              category: 'Roster Management',
+              features: [
+                'Automated Scouting',
+                'Team Composition Planning',
+                'Role-Based Trials',
+                'Contract Management',
+                'Substitute Rotations'
               ]
             }
           ].map((service, idx) => (
@@ -455,24 +439,14 @@ const Home = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.15 }}
-              className="bg-white/5 border border-purple-500/20 rounded-2xl p-6"
+              className="bg-white/5 border border-purple-500/20 rounded-2xl p-6 hover:border-purple-400/40 transition-colors group"
             >
-              <h4 className="text-lg font-bold mb-6 text-center">{service.category}</h4>
+              <h4 className="text-lg font-bold mb-6 text-center group-hover:text-purple-300 transition-colors">{service.category}</h4>
               <div className="space-y-4">
-                {service.metrics.map((metric, mIdx) => (
-                  <div key={mIdx}>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-slate-300">{metric.name}</span>
-                      <span className="text-purple-400 font-semibold">{metric.value}%</span>
-                    </div>
-                    <div className="h-2 bg-slate-800/50 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${metric.value}%` }}
-                        transition={{ delay: idx * 0.15 + mIdx * 0.1, duration: 1 }}
-                        className="h-full bg-gradient-to-r from-purple-600 to-violet-600 rounded-full"
-                      />
-                    </div>
+                {service.features.map((feature, fIdx) => (
+                  <div key={fIdx} className="flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                    <span className="text-slate-300 text-sm group-hover:text-white transition-colors">{feature}</span>
                   </div>
                 ))}
               </div>
