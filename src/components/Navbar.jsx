@@ -160,42 +160,15 @@ const Navbar = () => {
             ))}
 
             {/* Events Mobile Dropdown */}
-            <div>
-              <button
-                type="button"
-                className={`w-full flex justify-between items-center py-2 text-base font-medium transition-colors ${location.pathname.startsWith('/events')
-                  ? 'text-violet-400'
-                  : 'text-slate-300 hover:text-violet-400'
-                  }`}
-                onClick={() => setMobileEventsDropdownOpen((v) => !v)}
-              >
-                <span>Events</span>
-                <svg
-                  className={`ml-2 w-4 h-4 transition-transform ${mobileEventsDropdownOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {mobileEventsDropdownOpen && (
-                <div className="pl-5 py-1 flex flex-col gap-1">
-                  {eventDropdownLinks.map((subLink) => (
-                    <Link
-                      key={subLink.to}
-                      to={subLink.to}
-                      className={`block py-2 text-base font-medium transition-colors ${location.pathname === subLink.to
-                        ? 'text-violet-400'
-                        : 'text-slate-300 hover:text-violet-400'
-                        }`}
-                    >
-                      {subLink.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Link
+              to="/events/pmgc-2025"
+              className={`block py-2 text-base font-medium transition-colors ${location.pathname.startsWith('/events')
+                ? 'text-violet-400'
+                : 'text-slate-300 hover:text-violet-400'
+                }`}
+            >
+              Events
+            </Link>
 
             {navLinks.slice(4).map((link) => (
               <Link
