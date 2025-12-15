@@ -24,12 +24,13 @@ const NavLink = ({ to, icon: Icon, label, active }) => (
     </Link>
 );
 
+import { useDashboard } from '../../context/DashboardContext';
+
 const ProDashboard = () => {
     const { user, logout } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { teamData: data, teamLoading: loading, fetchTeamData } = useDashboard();
 
     const isActive = (path) => location.pathname === path;
 
@@ -39,19 +40,8 @@ const ProDashboard = () => {
     };
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Fetch same data as basic team dashboard
-                const { data } = await api.get('/team/dashboard');
-                setData(data);
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
+        fetchTeamData();
+    }, [fetchTeamData]);
 
     // Modified StatCard to implement Premium blur on values
     const StatCard = ({ title, value, icon: Icon, color, subtext }) => (

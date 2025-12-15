@@ -151,106 +151,112 @@ const ProtectedRoute = ({ children, allowedRole, isProRequired }) => {
   return children;
 };
 
+import { DashboardProvider } from './context/DashboardContext';
+
+// ... (existing imports)
+
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Toaster position="top-right" toastOptions={{
-          style: {
-            background: '#333',
-            color: '#fff',
-            border: '1px solid #7c3aed',
-          },
-        }} />
-        <Routes>
-          {/* Public Routes */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/brands" element={<Brands />} />
-            <Route path="/competitive-esports" element={<CompetitiveEsports />} />
-            <Route path="/creators-partners" element={<CreatorsPartners />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/join-us" element={<JoinUs />} />
-            <Route path="/media-coverage" element={<MediaCoverage />} />
-            <Route path="/tech-anti-cheat" element={<TechAntiCheat />} />
-            <Route path="/events/pmgc-2025" element={<PMGC2025 />} />
-            <Route path="/events/pgc-2025" element={<PGC2025 />} />
-            <Route path="/talent" element={<Talent />} />
-            <Route path="/talent/pubg-mobile" element={<PUBGMobile />} />
-            <Route path="/talent/coming-soon" element={<ComingSoonGame />} />
+      <DashboardProvider>
+        <Router>
+          <Toaster position="top-right" toastOptions={{
+            style: {
+              background: '#333',
+              color: '#fff',
+              border: '1px solid #7c3aed',
+            },
+          }} />
+          <Routes>
+            {/* Public Routes */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/brands" element={<Brands />} />
+              <Route path="/competitive-esports" element={<CompetitiveEsports />} />
+              <Route path="/creators-partners" element={<CreatorsPartners />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/join-us" element={<JoinUs />} />
+              <Route path="/media-coverage" element={<MediaCoverage />} />
+              <Route path="/tech-anti-cheat" element={<TechAntiCheat />} />
+              <Route path="/events/pmgc-2025" element={<PMGC2025 />} />
+              <Route path="/events/pgc-2025" element={<PGC2025 />} />
+              <Route path="/talent" element={<Talent />} />
+              <Route path="/talent/pubg-mobile" element={<PUBGMobile />} />
+              <Route path="/talent/coming-soon" element={<ComingSoonGame />} />
 
-            {/* Auth Routes inside Public Layout (Transparent) */}
-            <Route path="/team/login" element={<GuestRoute><UnifiedLogin type="team" /></GuestRoute>} />
-            <Route path="/sys-admin-secret-login/auth" element={<GuestRoute><UnifiedLogin type="admin" /></GuestRoute>} />
-            <Route path="/pro/login" element={<GuestRoute><ProLogin /></GuestRoute>} />
-            <Route path="/talent/player/signup" element={<GuestRoute><PlayerSignup /></GuestRoute>} />
-            <Route path="/talent/team/signup" element={<GuestRoute><TeamSignup /></GuestRoute>} />
-            <Route path="/talent/player/login" element={<GuestRoute><PlayerLogin /></GuestRoute>} />
-          </Route>
+              {/* Auth Routes inside Public Layout (Transparent) */}
+              <Route path="/team/login" element={<GuestRoute><UnifiedLogin type="team" /></GuestRoute>} />
+              <Route path="/sys-admin-secret-login/auth" element={<GuestRoute><UnifiedLogin type="admin" /></GuestRoute>} />
+              <Route path="/pro/login" element={<GuestRoute><ProLogin /></GuestRoute>} />
+              <Route path="/talent/player/signup" element={<GuestRoute><PlayerSignup /></GuestRoute>} />
+              <Route path="/talent/team/signup" element={<GuestRoute><TeamSignup /></GuestRoute>} />
+              <Route path="/talent/player/login" element={<GuestRoute><PlayerLogin /></GuestRoute>} />
+            </Route>
 
-          {/* Login Selection */}
-          <Route path="/login" element={<LoginSelection />} />
+            {/* Login Selection */}
+            <Route path="/login" element={<LoginSelection />} />
 
-          {/* Pro Team Routes */}
-          <Route path="/pro" element={<ProtectedRoute allowedRole="team" isProRequired={true}><Outlet /></ProtectedRoute>}>
-            <Route index element={<Navigate to="/pro/dashboard" />} />
-            <Route path="dashboard" element={<ProDashboard />} />
-            {/* Add more pro routes here later */}
-          </Route>
+            {/* Pro Team Routes */}
+            <Route path="/pro" element={<ProtectedRoute allowedRole="team" isProRequired={true}><Outlet /></ProtectedRoute>}>
+              <Route index element={<Navigate to="/pro/dashboard" />} />
+              <Route path="dashboard" element={<ProDashboard />} />
+              {/* Add more pro routes here later */}
+            </Route>
 
-          {/* Secret Admin Routes */}
-          <Route path="/sys-admin-secret-login" element={<ProtectedRoute allowedRole="admin"><AdminLayout /></ProtectedRoute>}>
-            <Route index element={<Navigate to="/sys-admin-secret-login/dashboard" />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="teams" element={<AdminTeams />} />
-            <Route path="teams/:id" element={<AdminTeamDetails />} />
-            <Route path="requests" element={<AdminRequests />} />
-            <Route path="events" element={<AdminEvents />} />
-            <Route path="media" element={<AdminMedia />} />
-            <Route path="performance" element={<AdminPerformance />} />
-            <Route path="revision-requests" element={<AdminRevisions />} />
-            <Route path="notifications" element={<AdminNotifications />} />
-            <Route path="moderators" element={<Moderators />} />
-            <Route path="analytics" element={<AdminAnalytics />} />
-          </Route>
+            {/* Secret Admin Routes */}
+            <Route path="/sys-admin-secret-login" element={<ProtectedRoute allowedRole="admin"><AdminLayout /></ProtectedRoute>}>
+              <Route index element={<Navigate to="/sys-admin-secret-login/dashboard" />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="teams" element={<AdminTeams />} />
+              <Route path="teams/:id" element={<AdminTeamDetails />} />
+              <Route path="requests" element={<AdminRequests />} />
+              <Route path="events" element={<AdminEvents />} />
+              <Route path="media" element={<AdminMedia />} />
+              <Route path="performance" element={<AdminPerformance />} />
+              <Route path="revision-requests" element={<AdminRevisions />} />
+              <Route path="notifications" element={<AdminNotifications />} />
+              <Route path="moderators" element={<Moderators />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+            </Route>
 
 
-          {/* Team Routes */}
-          <Route path="/team" element={<ProtectedRoute allowedRole="team"><TeamLayout /></ProtectedRoute>}>
-            <Route index element={<Navigate to="/team/dashboard" />} />
-            <Route path="dashboard" element={<TeamDashboard />} />
-            <Route path="events" element={<TeamEvents />} />
-            <Route path="media" element={<TeamMedia />} />
-            <Route path="performance" element={<TeamPerformance />} />
-            <Route path="roster" element={<TeamRoster />} />
-            <Route path="social" element={<TeamSocial />} />
-            <Route path="revisions" element={<TeamRevisions />} />
-            <Route path="notifications" element={<TeamNotifications />} />
-            <Route path="recruitments" element={<TeamRecruitments />} />
-            <Route path="scout" element={<ScoutPlayers />} />
-            <Route path="support" element={<SupportStaff />} />
-            <Route path="socials" element={<SocialsSettings />} />
-            <Route path="strategy/maps" element={<Maps />} />
-            <Route path="strategy/video-analysis" element={<VideoAnalysis />} />
-            <Route path="strategy/rotations" element={<Rotations />} />
-            <Route path="strategy/drops" element={<TeamDrops />} />
-          </Route>
+            {/* Team Routes */}
+            <Route path="/team" element={<ProtectedRoute allowedRole="team"><TeamLayout /></ProtectedRoute>}>
+              <Route index element={<Navigate to="/team/dashboard" />} />
+              <Route path="dashboard" element={<TeamDashboard />} />
+              <Route path="events" element={<TeamEvents />} />
+              <Route path="media" element={<TeamMedia />} />
+              <Route path="performance" element={<TeamPerformance />} />
+              <Route path="roster" element={<TeamRoster />} />
+              <Route path="social" element={<TeamSocial />} />
+              <Route path="revisions" element={<TeamRevisions />} />
+              <Route path="notifications" element={<TeamNotifications />} />
+              <Route path="recruitments" element={<TeamRecruitments />} />
+              <Route path="scout" element={<ScoutPlayers />} />
+              <Route path="support" element={<SupportStaff />} />
+              <Route path="socials" element={<SocialsSettings />} />
+              <Route path="strategy/maps" element={<Maps />} />
+              <Route path="strategy/video-analysis" element={<VideoAnalysis />} />
+              <Route path="strategy/rotations" element={<Rotations />} />
+              <Route path="strategy/drops" element={<TeamDrops />} />
+            </Route>
 
-          {/* Player Routes */}
-          <Route path="/player" element={<ProtectedRoute allowedRole="player"><PlayerLayout /></ProtectedRoute>}>
-            <Route index element={<Navigate to="/player/dashboard" />} />
-            <Route path="dashboard" element={<PlayerDashboard />} />
-            <Route path="browse-teams" element={<BrowseTeams />} />
-            <Route path="teams/:id" element={<TeamProfile />} />
-            <Route path="requests" element={<PlayerRequests />} />
-            <Route path="matches" element={<PlayerMatches />} />
-          </Route>
+            {/* Player Routes */}
+            <Route path="/player" element={<ProtectedRoute allowedRole="player"><PlayerLayout /></ProtectedRoute>}>
+              <Route index element={<Navigate to="/player/dashboard" />} />
+              <Route path="dashboard" element={<PlayerDashboard />} />
+              <Route path="browse-teams" element={<BrowseTeams />} />
+              <Route path="teams/:id" element={<TeamProfile />} />
+              <Route path="requests" element={<PlayerRequests />} />
+              <Route path="matches" element={<PlayerMatches />} />
+            </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
+            {/* Fallback */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
+      </DashboardProvider>
     </AuthProvider>
   );
 }

@@ -3,23 +3,14 @@ import api from '../../api/client';
 import { Link } from 'react-router-dom';
 import { Users, Trophy, Image, MessageSquare, ArrowUpRight, Calendar, Clock } from 'lucide-react';
 
+import { useDashboard } from '../../context/DashboardContext';
+
 const AdminDashboard = () => {
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { adminData: stats, adminLoading: loading, fetchAdminData } = useDashboard();
 
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const { data } = await api.get('/admin/dashboard');
-                setStats(data);
-            } catch (error) {
-                console.error('Error fetching dashboard stats:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchStats();
-    }, []);
+        fetchAdminData();
+    }, [fetchAdminData]);
 
     if (loading) return (
         <div className="flex items-center justify-center h-full">

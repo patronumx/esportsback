@@ -3,9 +3,10 @@ import api from '../../api/client';
 import { Calendar, Image, Activity, Bell, ArrowUpRight, Clock, Trophy, DollarSign, Video, Mic, Share2, Eye, Download, FileText, CheckCircle, AlertCircle, Loader, LogOut, Instagram, Twitter, Camera, Lock } from 'lucide-react';
 import PremiumBlur from '../../components/common/PremiumBlur';
 
+import { useDashboard } from '../../context/DashboardContext';
+
 const TeamDashboard = () => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { teamData: data, teamLoading: loading, fetchTeamData } = useDashboard();
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [requestType, setRequestType] = useState('');
 
@@ -30,19 +31,8 @@ const TeamDashboard = () => {
     };
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // We still fetch data to show Roster, but we'll mock/hide stats
-                const { data } = await api.get('/team/dashboard');
-                setData(data);
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
+        fetchTeamData();
+    }, [fetchTeamData]);
 
     if (loading) return (
         <div className="flex items-center justify-center h-full">
