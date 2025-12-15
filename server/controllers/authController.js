@@ -82,7 +82,7 @@ exports.adminLogin = async (req, res) => {
         );
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, error: 'Server Error' });
+        res.status(500).json({ success: false, error: 'Server Error: ' + err.message, stack: err.stack });
     }
 };
 
