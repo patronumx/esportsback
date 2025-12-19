@@ -18,7 +18,8 @@ html,
 body,
 #root {
   height: 100%;
-  font-size: 90%; /* Scale down the entire app */
+  font-size: 90%;
+  /* Scale down the entire app */
 }
 
 /* Global font + base background */

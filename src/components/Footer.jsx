@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import logo from '../assets/logo.png';
 
 const Footer = () => {
   return (
@@ -8,9 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-700 rounded-lg flex items-center justify-center">
-                <span className="text-xl font-bold">P</span>
-              </div>
+              <img src={logo} alt="Patronum Esports" className="w-10 h-10 rounded-lg object-contain" />
               <span className="text-lg font-bold">Patronum Esports</span>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed">
@@ -186,6 +185,27 @@ const Footer = () => {
                   />
                   <circle cx="12" cy="12" r="3.2" stroke="white" strokeWidth="1.6" />
                   <circle cx="16.2" cy="7.8" r="0.9" fill="white" />
+                </svg>
+              </a>
+
+              {/* Twitch */}
+              <a
+                href="https://www.twitch.tv/patronum_gg"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Patronum Esports on Twitch"
+                className="w-9 h-9 bg-violet-500/10 rounded-lg flex items-center justify-center hover:bg-violet-500/30 hover:-translate-y-0.5 transition-all"
+              >
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"
+                    fill="white"
+                  />
                 </svg>
               </a>
             </div>
