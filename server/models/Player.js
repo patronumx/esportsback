@@ -4,6 +4,7 @@ const playerSchema = new mongoose.Schema({
     team: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' }, // Optional (Free Agent)
     ign: { type: String, required: true },
     name: { type: String },
+    email: { type: String }, // Saved from registration
     role: { type: String }, // e.g. 'IGL', 'Fragger', 'Support'
     avatarUrl: { type: String }, // Cloudinary URL
     experience: { type: String }, // e.g. '1 Year', '2 Years'

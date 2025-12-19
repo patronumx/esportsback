@@ -119,6 +119,7 @@ exports.registerPlayer = async (req, res) => {
         const player = new Player({
             ign,
             name: fullName,
+            email, // Save email here as well
             socialLinks,
             role: (role && role !== 'player') ? role : 'Assaulter',
             age: age || null,
