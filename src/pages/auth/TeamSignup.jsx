@@ -13,7 +13,8 @@ const TeamSignup = () => {
         phoneNumber: '',
         password: '',
         confirmPassword: '',
-        instagram: ''
+        instagram: '',
+        region: ''
     });
     const [logoFile, setLogoFile] = useState(null);
     const [error, setError] = useState('');
@@ -47,6 +48,7 @@ const TeamSignup = () => {
         data.append('phoneNumber', formData.phoneNumber);
         data.append('password', formData.password);
         data.append('instagram', formData.instagram);
+        data.append('region', formData.region);
         if (logoFile) {
             data.append('logo', logoFile);
         }
@@ -140,6 +142,23 @@ const TeamSignup = () => {
                                         />
                                     </div>
                                 </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Region</label>
+                                    <select
+                                        name="region"
+                                        value={formData.region}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-violet-500 transition-colors text-white placeholder-slate-600 appearance-none"
+                                    >
+                                        <option value="" disabled className="bg-slate-900 text-slate-400">Select Region</option>
+                                        <option value="PAKISTAN" className="bg-slate-900">PAKISTAN</option>
+                                        <option value="NEPAL" className="bg-slate-900">NEPAL</option>
+                                        <option value="MONGOLIA" className="bg-slate-900">MONGOLIA</option>
+                                        <option value="BANGLADESH" className="bg-slate-900">BANGLADESH</option>
+                                        <option value="UZBEKISTAN" className="bg-slate-900">UZBEKISTAN</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
@@ -213,9 +232,9 @@ const TeamSignup = () => {
                             Login into Dashboard
                         </Link>
                     </div>
-                </div>
-            </div>
-        </div>
+                </div >
+            </div >
+        </div >
     );
 };
 

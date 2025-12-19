@@ -174,7 +174,7 @@ const streamifier = require('streamifier');
 // Register Team
 exports.registerTeam = async (req, res) => {
     // req.body fields (text)
-    const { teamName, email, password, phoneNumber, ownerName, instagram } = req.body;
+    const { teamName, email, password, phoneNumber, ownerName, instagram, region } = req.body;
 
     try {
         let user = await User.findOne({ email });
@@ -235,7 +235,7 @@ exports.registerTeam = async (req, res) => {
             id: slug,
             game: 'PUBG Mobile', // Default
             logoUrl: logoUrl, // Saved from Cloudinary
-            region: 'Global', // Default or add field
+            region: region || 'Global', // Use provided region or default
             phoneNumber,
             email, // Save email to Team model
             ownerName,
