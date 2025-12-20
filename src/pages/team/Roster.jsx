@@ -267,7 +267,7 @@ const TeamRoster = () => {
                                             )}
                                             <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] to-transparent opacity-80" />
                                         </div>
-                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                        <div className="absolute top-2 right-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity flex gap-2">
                                             <button onClick={() => handleEditClick(index, player)} className="p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-violet-500 transition-colors">
                                                 <Upload size={14} /> {/* Reusing upload icon for edit implies change */}
                                             </button>
