@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Calendar, Image, Activity, Users, MessageSquare, Bell, LogOut, BarChart, Download, Menu, X, Search, Briefcase, Link2, Map, MonitorPlay, Route, MapPin } from 'lucide-react';
+import { LayoutDashboard, Calendar, Image, Activity, Users, MessageSquare, Bell, LogOut, BarChart, Download, Menu, X, Search, Briefcase, Link2, Map, MonitorPlay, Route, MapPin, ClipboardList, Crosshair } from 'lucide-react';
 import Hyperspeed from '../components/Hyperspeed';
 
 
@@ -112,6 +112,8 @@ const TeamLayout = () => {
                     <NavItem to="/team/strategy/video-analysis" icon={MonitorPlay} label="Video Analysis" />
                     <NavItem to="/team/strategy/rotations" icon={Route} label="Rotations" />
                     <NavItem to="/team/strategy/drops" icon={MapPin} label="Team Drops" />
+                    <NavItem to="/team/strategy/planning" icon={ClipboardList} label="Planning" />
+                    <NavItem to="/team/strategy/weaponary" icon={Crosshair} label="Weaponary" />
 
                     <div className="text-[10px] lg:text-xs font-bold text-gray-500 uppercase tracking-wider px-2 md:px-3 mb-1 mt-2 md:mt-4">Analytics</div>
                     <NavItem to="/team/performance" icon={Activity} label="Performance" />

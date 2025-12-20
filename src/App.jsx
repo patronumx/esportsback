@@ -71,6 +71,8 @@ import Maps from './pages/team/strategy/Maps';
 import VideoAnalysis from './pages/team/strategy/VideoAnalysis';
 import Rotations from './pages/team/strategy/Rotations';
 import TeamDrops from './pages/team/strategy/TeamDrops';
+import Planning from './pages/team/strategy/Planning';
+import Weaponary from './pages/team/strategy/Weaponary';
 import PlayerMatches from './pages/player/Matches';
 import PlayerDashboard from './pages/player/Dashboard';
 import BrowseTeams from './pages/player/BrowseTeams';
@@ -240,6 +242,8 @@ function App() {
               <Route path="strategy/video-analysis" element={<VideoAnalysis />} />
               <Route path="strategy/rotations" element={<Rotations />} />
               <Route path="strategy/drops" element={<TeamDrops />} />
+              <Route path="strategy/planning" element={<Planning />} />
+              <Route path="strategy/weaponary" element={<Weaponary />} />
             </Route>
 
             {/* Player Routes */}

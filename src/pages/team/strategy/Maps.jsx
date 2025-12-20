@@ -7,6 +7,7 @@ const Maps = () => {
             title="Maps Strategy"
             description="Interactive map tools and callout editors are currently under development. Coming Soon!"
             type="clock"
+            launchDate="2025-12-28T21:00:00+05:00"
         />
     );
 };

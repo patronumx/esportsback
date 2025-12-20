@@ -7,6 +7,7 @@ const Rotations = () => {
             title="Rotations & Pathing"
             description="Route planning and timing calculators are in the works. Coming Soon."
             type="clock"
+            launchDate="2025-12-28T21:00:00+05:00"
         />
     );
 };
