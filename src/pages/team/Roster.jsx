@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { User, Plus, X, Upload, Save } from 'lucide-react';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
+import { showToast } from '../../utils/toast';
 
 const ROLES = ['IGL', 'Assaulter', 'Support', 'Fragger'];
 
 
 const TeamRoster = () => {
     const [team, setTeam] = useState(null);
+    const [deleteIndex, setDeleteIndex] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editingSlot, setEditingSlot] = useState(null); // Index of slot being edited
 
@@ -24,8 +27,8 @@ const TeamRoster = () => {
         } catch (error) {
             console.error(error);
             if (error.response?.status === 403) {
-                alert('Access Denied: You might be logged in as a Player. Please log out and log in as a Team.');
-                window.location.href = '/login'; // Or use navigate if available, but hard redirect ensures clear state
+                showToast.error('Access Denied: Please log in as a Team.');
+                window.location.href = '/login';
             }
         } finally {
             setLoading(false);
@@ -75,7 +78,8 @@ const TeamRoster = () => {
             }
 
             // Construct new roster
-            const newRoster = [...(team.roster || [])];
+            const currentRoster = (team.players && team.players.length > 0) ? team.players : (team.roster || []);
+            const newRoster = [...currentRoster];
             // Ensure array has enough slots if adding to new index
             // Ensure array has enough slots if adding to new index
             while (newRoster.length <= index) {
@@ -102,30 +106,39 @@ const TeamRoster = () => {
             setTeam(data); // data is the updated team object
             setTeam(data); // data is the updated team object
             setEditingSlot(null);
+            showToast.success('Player saved successfully');
         } catch (error) {
             console.error('Error saving player:', error);
-            alert('Failed to save player');
+            showToast.error('Failed to save player');
         } finally {
             setUploading(false);
         }
     };
 
-    const handleRemove = async (index) => {
-        if (!confirm('Remove this player from roster?')) return;
+    const handleRemove = (index) => {
+        setDeleteIndex(index);
+    };
+
+    const confirmRemove = async () => {
+        if (deleteIndex === null) return;
         try {
-            const newRoster = [...(team.roster || [])];
-            newRoster.splice(index, 1);
+            const currentRoster = (team.players && team.players.length > 0) ? team.players : (team.roster || []);
+            const newRoster = [...currentRoster];
+            newRoster.splice(deleteIndex, 1);
             const { data } = await api.post('/team/roster', { roster: newRoster });
             setTeam(data);
+            showToast.success('Player removed from roster');
+            setDeleteIndex(null);
         } catch (error) {
             console.error(error);
+            showToast.error('Failed to remove player');
         }
     };
 
     if (loading) return <div className="text-white flex justify-center p-10"><div className="animate-spin rounded-full h-10 w-10 border-t-2 border-violet-500"></div></div>;
     if (!team) return <div className="text-white">Team not found</div>;
 
-    const rosterDisplay = team.roster || [];
+    const rosterDisplay = (team.players && team.players.length > 0) ? team.players : (team.roster || []);
     const slots = 8;
 
     return (
@@ -310,7 +323,17 @@ const TeamRoster = () => {
                     );
                 })}
             </div>
-        </div>
+
+            <ConfirmationModal
+                isOpen={deleteIndex !== null}
+                onClose={() => setDeleteIndex(null)}
+                onConfirm={confirmRemove}
+                title="Remove Player"
+                message="Are you sure you want to remove this player from the roster?"
+                confirmText="Remove"
+                isDanger={true}
+            />
+        </div >
     );
 };
 

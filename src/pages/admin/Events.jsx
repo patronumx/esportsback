@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { Plus, Trash2, Calendar, MapPin, Download, List, Grid, Clock, X, Trophy, Users, Video } from 'lucide-react';
 import CalendarView from '../../components/CalendarView';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
+import { showToast } from '../../utils/toast';
 
 const AdminEvents = () => {
     const [events, setEvents] = useState([]);
@@ -9,7 +11,8 @@ const AdminEvents = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
-    const [formData, setFormData] = useState({ team: '', title: '', type: 'scrim', startTime: '', location: '' });
+    const [formData, setFormData] = useState({ team: '', title: '', type: 'scrim', startTime: '', location: '', schedule: [] });
+    const [deleteId, setDeleteId] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -36,20 +39,26 @@ const AdminEvents = () => {
             await api.post('/admin/events', formData);
             setShowModal(false);
             fetchData();
-            setFormData({ team: '', title: '', type: 'scrim', startTime: '', location: '' });
+            setFormData({ team: '', title: '', type: 'scrim', startTime: '', location: '', schedule: [] });
         } catch (error) {
             console.error(error);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('Delete event?')) {
-            try {
-                await api.delete(`/admin/events/${id}`);
-                fetchData();
-            } catch (error) {
-                console.error(error);
-            }
+    const handleDelete = (id) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteId) return;
+        try {
+            await api.delete(`/admin/events/${deleteId}`);
+            fetchData();
+            showToast.success('Event deleted successfully');
+            setDeleteId(null);
+        } catch (error) {
+            console.error(error);
+            showToast.error('Failed to delete event');
         }
     };
 
@@ -118,8 +127,8 @@ const AdminEvents = () => {
                                     <div className="flex-1 text-center md:text-left w-full">
                                         <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
                                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${event.type === 'tournament' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                                                    event.type === 'media-day' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                                                        'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                                event.type === 'media-day' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                                                    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                                                 }`}>
                                                 {event.type}
                                             </span>
@@ -231,6 +240,53 @@ const AdminEvents = () => {
                                 />
                             </div>
 
+                            <div className="border-t border-white/10 pt-4 mt-2">
+                                <div className="flex justify-between items-center mb-4">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Event Schedule</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({
+                                            ...formData,
+                                            schedule: [...(formData.schedule || []), { day: (formData.schedule?.length || 0) + 1, date: '', matches: [] }]
+                                        })}
+                                        className="text-xs bg-blue-600/20 text-blue-400 px-2 py-1 rounded hover:bg-blue-600/30 transition-colors font-bold"
+                                    >
+                                        + Add Day
+                                    </button>
+                                </div>
+                                <div className="space-y-3 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                    {(!formData.schedule || formData.schedule.length === 0) && (
+                                        <p className="text-gray-500 text-sm text-center italic py-2">No schedule days added yet.</p>
+                                    )}
+                                    {formData.schedule?.map((day, index) => (
+                                        <div key={index} className="bg-white/5 p-3 rounded-lg border border-white/5 flex items-center gap-3">
+                                            <span className="text-white font-bold text-sm w-12">Day {index + 1}</span>
+                                            <input
+                                                type="date"
+                                                className="flex-1 p-2 bg-black/20 text-white rounded border border-white/10 focus:border-blue-500 text-sm"
+                                                value={day.date ? new Date(day.date).toISOString().split('T')[0] : ''}
+                                                onChange={e => {
+                                                    const newSchedule = [...formData.schedule];
+                                                    newSchedule[index].date = e.target.value;
+                                                    setFormData({ ...formData, schedule: newSchedule });
+                                                }}
+                                                required
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newSchedule = formData.schedule.filter((_, i) => i !== index);
+                                                    setFormData({ ...formData, schedule: newSchedule });
+                                                }}
+                                                className="p-1.5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded transition-colors"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="flex justify-end pt-4">
                                 <button
                                     type="submit"
@@ -243,7 +299,18 @@ const AdminEvents = () => {
                     </div>
                 </div>
             )}
-        </div>
+
+
+            <ConfirmationModal
+                isOpen={deleteId !== null}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Delete Event"
+                message="Are you sure you want to delete this event?"
+                confirmText="Delete"
+                isDanger={true}
+            />
+        </div >
     );
 };
 

@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 import { Trash2, Edit2, AlertCircle, CheckCircle } from 'lucide-react';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
+import { showToast } from '../../utils/toast';
 
 const PlayerRequests = () => {
     const { user, loginWithToken } = useAuth();
@@ -34,7 +36,7 @@ const PlayerRequests = () => {
 
         } catch (error) {
             console.error('Failed to delete request', error);
-            alert('Failed to remove request.');
+            showToast.error('Failed to remove request.');
         } finally {
             setLoading(false);
             setShowDeleteModal(false);
@@ -44,36 +46,17 @@ const PlayerRequests = () => {
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             {/* Delete Confirmation Modal */}
-            {showDeleteModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[#111] border border-red-500/30 rounded-2xl p-8 max-w-md w-full text-center relative shadow-2xl shadow-red-900/20 transform animate-in zoom-in-95 duration-200">
-                        <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <AlertCircle className="w-8 h-8 text-red-500" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-white mb-2">Remove Request?</h3>
-                        <p className="text-gray-400 mb-8">
-                            Are you sure you want to remove your recruitment request? Teams will no longer be able to find you.
-                        </p>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <button
-                                onClick={() => setShowDeleteModal(false)}
-                                disabled={loading}
-                                className="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={confirmDelete}
-                                disabled={loading}
-                                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-                            >
-                                {loading ? 'Removing...' : 'Yes, Remove'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
+                title="Remove Request?"
+                message="Are you sure you want to remove your recruitment request? Teams will no longer be able to find you."
+                confirmText={loading ? 'Removing...' : 'Yes, Remove'}
+                cancelText="Cancel"
+                isDanger={true}
+                isLoading={loading}
+            />
 
             <div>
                 <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">My Requests</h1>

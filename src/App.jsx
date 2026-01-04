@@ -39,10 +39,12 @@ import ProDashboard from './pages/pro/Dashboard';
 // Event Pages
 import PMGC2025 from './pages/events/PMGC2025';
 import PGC2025 from './pages/events/PGC2025';
+import Stats from './pages/Stats';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminTeams from './pages/admin/Teams';
+import AdminPlayers from './pages/admin/Players';
 import AdminTeamDetails from './pages/admin/TeamDetails';
 import AdminEvents from './pages/admin/Events';
 import AdminMedia from './pages/admin/Media';
@@ -52,6 +54,8 @@ import AdminNotifications from './pages/admin/Notifications';
 import Moderators from './pages/admin/Moderators';
 import AdminAnalytics from './pages/admin/Analytics';
 import AdminRequests from './pages/admin/Requests';
+import AdminPlanning from './pages/admin/AdminPlanning';
+import TeamAnalytics from './pages/admin/TeamAnalytics';
 
 // Team Pages
 import TeamDashboard from './pages/team/Dashboard';
@@ -73,6 +77,9 @@ import Rotations from './pages/team/strategy/Rotations';
 import TeamDrops from './pages/team/strategy/TeamDrops';
 import Planning from './pages/team/strategy/Planning';
 import Weaponary from './pages/team/strategy/Weaponary';
+import AdminMapEditor from './pages/admin/AdminMapEditor';
+import AdminRotations from './pages/admin/strategy/AdminRotations';
+import TeamMapViewer from './pages/team/TeamMapViewer';
 import PlayerMatches from './pages/player/Matches';
 import PlayerDashboard from './pages/player/Dashboard';
 import BrowseTeams from './pages/player/BrowseTeams';
@@ -115,13 +122,13 @@ const ProtectedRoute = ({ children, allowedRole, isProRequired }) => {
     if (!loading) {
       if (!user && !toastShownRef.current) {
         toastShownRef.current = true;
-        showToast.error("Access Denied: Please login to continue.");
+        // showToast.error("Access Denied: Please login to continue.");
       } else if (user && allowedRole && user.role !== allowedRole && !toastShownRef.current) {
         toastShownRef.current = true;
-        showToast.warning(`Access Denied: You are not authorized as a ${allowedRole}`);
+        // showToast.warning(`Access Denied: You are not authorized as a ${allowedRole}`);
       } else if (user && isProRequired && !user.isPro && !toastShownRef.current) {
         toastShownRef.current = true;
-        showToast.error("Access Denied: This area is for Pro Teams only.");
+        // showToast.error("Access Denied: This area is for Pro Teams only.");
       }
     }
   }, [user, loading, allowedRole, isProRequired]);
@@ -138,7 +145,7 @@ const ProtectedRoute = ({ children, allowedRole, isProRequired }) => {
     // For admin, we don't want to redirect to the secret login if they are just a guest hitting a protected route blindly.
     // But if they are trying to access admin, they likely know the URL. 
     // Let's redirect to the secret login.
-    return <Navigate to={allowedRole === 'admin' ? '/sys-admin-secret-login/auth' : '/team/login'} />;
+    return <Navigate to={allowedRole === 'admin' ? '/sys-admin/login' : '/team/login'} />;
   }
 
   if (allowedRole && user.role !== allowedRole) {
@@ -186,10 +193,11 @@ function App() {
               <Route path="/talent" element={<Talent />} />
               <Route path="/talent/pubg-mobile" element={<PUBGMobile />} />
               <Route path="/talent/coming-soon" element={<ComingSoonGame />} />
+              <Route path="/stats" element={<Stats />} />
 
               {/* Auth Routes inside Public Layout (Transparent) */}
               <Route path="/team/login" element={<GuestRoute><UnifiedLogin type="team" /></GuestRoute>} />
-              <Route path="/sys-admin-secret-login/auth" element={<GuestRoute><UnifiedLogin type="admin" /></GuestRoute>} />
+              <Route path="/sys-admin/login" element={<UnifiedLogin type="admin" />} />
               <Route path="/pro/login" element={<GuestRoute><ProLogin /></GuestRoute>} />
               <Route path="/talent/player/signup" element={<GuestRoute><PlayerSignup /></GuestRoute>} />
               <Route path="/talent/team/signup" element={<GuestRoute><TeamSignup /></GuestRoute>} />
@@ -210,7 +218,10 @@ function App() {
             <Route path="/sys-admin-secret-login" element={<ProtectedRoute allowedRole="admin"><AdminLayout /></ProtectedRoute>}>
               <Route index element={<Navigate to="/sys-admin-secret-login/dashboard" />} />
               <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="drop-map" element={<AdminMapEditor />} />
+              <Route path="rotations" element={<AdminRotations />} />
               <Route path="teams" element={<AdminTeams />} />
+              <Route path="players" element={<AdminPlayers />} />
               <Route path="teams/:id" element={<AdminTeamDetails />} />
               <Route path="requests" element={<AdminRequests />} />
               <Route path="events" element={<AdminEvents />} />
@@ -220,6 +231,9 @@ function App() {
               <Route path="notifications" element={<AdminNotifications />} />
               <Route path="moderators" element={<Moderators />} />
               <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="team-analytics" element={<TeamAnalytics />} />
+              <Route path="planning" element={<AdminPlanning />} />
+              <Route path="guidelines" element={<Navigate to="planning" replace />} />
             </Route>
 
 
@@ -234,11 +248,11 @@ function App() {
               <Route path="social" element={<TeamSocial />} />
               <Route path="revisions" element={<TeamRevisions />} />
               <Route path="notifications" element={<TeamNotifications />} />
-              <Route path="recruitments" element={<TeamRecruitments />} />
+              <Route path="recruitment" element={<TeamRecruitments />} />
               <Route path="scout" element={<ScoutPlayers />} />
               <Route path="support" element={<SupportStaff />} />
               <Route path="socials" element={<SocialsSettings />} />
-              <Route path="strategy/maps" element={<Maps />} />
+              <Route path="strategy/maps" element={<TeamMapViewer />} />
               <Route path="strategy/video-analysis" element={<VideoAnalysis />} />
               <Route path="strategy/rotations" element={<Rotations />} />
               <Route path="strategy/drops" element={<TeamDrops />} />

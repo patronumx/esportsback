@@ -10,7 +10,7 @@ const GuestRoute = ({ children }) => {
     useEffect(() => {
         if (user && !toastShownRef.current) {
             toastShownRef.current = true;
-            showToast.info("You're already logged in!");
+            // showToast.info("You're already logged in!");
         }
     }, [user]);
 

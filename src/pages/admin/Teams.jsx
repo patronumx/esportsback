@@ -3,6 +3,8 @@ import api from '../../api/client';
 import { Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, Download, Users, Gamepad2, Globe, Search, X, Shield } from 'lucide-react';
 import FileUploader from '../../components/common/FileUploader';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
+import { showToast } from '../../utils/toast';
 
 const AdminTeams = () => {
     const [teams, setTeams] = useState([]);
@@ -10,6 +12,7 @@ const AdminTeams = () => {
     const [showModal, setShowModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [formData, setFormData] = useState({ name: '', email: '', password: '', game: '', region: '', logoUrl: '' });
+    const [deleteId, setDeleteId] = useState(null);
 
     useEffect(() => {
         fetchTeams();
@@ -38,14 +41,20 @@ const AdminTeams = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('Are you sure you want to delete this team?')) {
-            try {
-                await api.delete(`/admin/teams/${id}`);
-                fetchTeams();
-            } catch (error) {
-                console.error(error);
-            }
+    const handleDelete = (id) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteId) return;
+        try {
+            await api.delete(`/admin/teams/${deleteId}`);
+            fetchTeams();
+            showToast.success('Team deleted successfully');
+            setDeleteId(null);
+        } catch (error) {
+            console.error(error);
+            showToast.error('Failed to delete team');
         }
     };
 
@@ -251,6 +260,16 @@ const AdminTeams = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={deleteId !== null}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Delete Team"
+                message="Are you sure you want to delete this team?"
+                confirmText="Delete"
+                isDanger={true}
+            />
         </div>
     );
 };

@@ -26,9 +26,10 @@ const Navbar = () => {
   const navLinks = [
     { to: '/', label: 'Home' },
     // { to: '/competitive-esports', label: 'Competitive' },
-    { to: '/creators-partners', label: 'Creators' },
+    // { to: '/creators-partners', label: 'Creators' },
     { to: '/brands', label: 'Brands' },
     { to: '/talent', label: 'Talent' },
+    { to: '/stats', label: 'Stats with Portal' },
     // { to: '/events', label: 'Events' }, // handled separately for dropdown
     { to: '/tech-anti-cheat', label: 'Technology' },
     // { to: '/faq', label: 'FAQ' },

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { Plus, Trash2, Folder, Image as ImageIcon, Video, Search, X, Play, Maximize2 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { showToast } from '../../utils/toast';
 import FileUploader from '../../components/common/FileUploader';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
 
 const AdminMedia = () => {
     const [media, setMedia] = useState([]);
+    const [deleteId, setDeleteId] = useState(null);
     const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -24,11 +26,9 @@ const AdminMedia = () => {
                 api.get('/admin/media'),
                 api.get('/admin/teams')
             ]);
-            setMedia(mediaRes.data);
-            setTeams(teamsRes.data.data || teamsRes.data);
         } catch (error) {
             console.error(error);
-            toast.error('Failed to load data');
+            showToast.error('Failed to load data');
         } finally {
             setLoading(false);
         }
@@ -41,24 +41,28 @@ const AdminMedia = () => {
             setShowModal(false);
             fetchData();
             setFormData({ teamId: '', title: '', type: 'image', tags: '', folder: 'General', url: '' });
-            toast.success('Media uploaded successfully');
+            showToast.success('Media uploaded successfully');
         } catch (error) {
             console.error(error);
-            toast.error('Upload failed');
+            showToast.error('Upload failed');
         }
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('Delete this media?')) {
-            try {
-                await api.delete(`/admin/media/${id}`);
-                fetchData();
-                toast.success('Media deleted');
-                if (previewItem && previewItem._id === id) setPreviewItem(null);
-            } catch (error) {
-                console.error(error);
-                toast.error('Delete failed');
-            }
+    const handleDelete = (id) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteId) return;
+        try {
+            await api.delete(`/admin/media/${deleteId}`);
+            fetchData();
+            showToast.success('Media deleted');
+            if (previewItem && previewItem._id === deleteId) setPreviewItem(null);
+            setDeleteId(null);
+        } catch (error) {
+            console.error(error);
+            showToast.error('Delete failed');
         }
     };
 
@@ -107,8 +111,8 @@ const AdminMedia = () => {
                             key={filter}
                             onClick={() => setCurrentFilter(filter)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${currentFilter === filter
-                                    ? 'bg-blue-600 text-white shadow-lg'
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                ? 'bg-blue-600 text-white shadow-lg'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
                                 }`}
                         >
                             {filter}
@@ -286,6 +290,15 @@ const AdminMedia = () => {
                     </div>
                 </div>
             )}
+            <ConfirmationModal
+                isOpen={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Delete Media"
+                message="Are you sure you want to delete this media asset?"
+                confirmText="Delete Media"
+                isDanger={true}
+            />
         </div>
     );
 };

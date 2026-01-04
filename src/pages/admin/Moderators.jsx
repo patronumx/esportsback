@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { Plus, Trash2, Shield } from 'lucide-react';
-import toast from 'react-hot-toast';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
+import { showToast } from '../../utils/toast';
 
 const Moderators = () => {
     const [moderators, setModerators] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+    const [deleteId, setDeleteId] = useState(null);
 
     useEffect(() => {
         fetchModerators();
@@ -29,26 +31,30 @@ const Moderators = () => {
         e.preventDefault();
         try {
             await api.post('/admin/moderators', formData);
-            toast.success('Moderator created successfully');
+            showToast.success('Moderator created successfully');
             setShowModal(false);
             fetchModerators();
             setFormData({ name: '', email: '', password: '' });
         } catch (error) {
             console.error(error);
-            toast.error(error.response?.data?.message || 'Failed to create moderator');
+            showToast.error(error.response?.data?.message || 'Failed to create moderator');
         }
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('Are you sure you want to remove this moderator?')) {
-            try {
-                await api.delete(`/admin/moderators/${id}`);
-                toast.success('Moderator removed');
-                fetchModerators();
-            } catch (error) {
-                console.error(error);
-                toast.error('Failed to delete moderator');
-            }
+    const handleDelete = (id) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteId) return;
+        try {
+            await api.delete(`/admin/moderators/${deleteId}`);
+            showToast.success('Moderator removed');
+            fetchModerators();
+            setDeleteId(null);
+        } catch (error) {
+            console.error(error);
+            showToast.error('Failed to delete moderator');
         }
     };
 
@@ -108,6 +114,16 @@ const Moderators = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={deleteId !== null}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Remove Moderator"
+                message="Are you sure you want to remove this moderator?"
+                confirmText="Remove"
+                isDanger={true}
+            />
         </div>
     );
 };

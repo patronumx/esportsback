@@ -1,14 +1,32 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
-import { Plus, Trash2, Download, Trophy, TrendingUp, DollarSign, Calendar, X } from 'lucide-react';
+import { Plus, Trash2, Download, Trophy, TrendingUp, DollarSign, Calendar, X, Users, Gamepad2, MapPin } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
+import CustomSelect from '../../components/common/CustomSelect';
+import { showToast } from '../../utils/toast';
 
 const AdminPerformance = () => {
     const [performances, setPerformances] = useState([]);
     const [teams, setTeams] = useState([]);
+    const [allPlayers, setAllPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({ team: '', tournamentName: '', placement: '', date: '', earnings: '', region: '' });
+
+    // Form State
+    const [formData, setFormData] = useState({
+        team: '',
+        tournamentName: '',
+        placement: '',
+        date: '',
+        earnings: '',
+        region: '',
+        matchesPlayed: '',
+        eliminations: '',
+        playerStats: []
+    });
+
+    const [deleteId, setDeleteId] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -16,39 +34,91 @@ const AdminPerformance = () => {
 
     const fetchData = async () => {
         try {
-            const [perfRes, teamsRes] = await Promise.all([
+            const [perfRes, teamsRes, playersRes] = await Promise.all([
                 api.get('/admin/performance'),
-                api.get('/admin/teams')
+                api.get('/admin/teams?limit=100'),
+                api.get('/admin/players')
             ]);
             setPerformances(perfRes.data.data || perfRes.data);
             setTeams(teamsRes.data.data || teamsRes.data);
+            setAllPlayers(playersRes.data.data || playersRes.data);
         } catch (error) {
             console.error(error);
+            showToast.error('Failed to load data');
         } finally {
             setLoading(false);
         }
     };
 
+    // Initialize player stats when team changes
+    useEffect(() => {
+        if (formData.team) {
+            const teamPlayers = allPlayers.filter(p => p.team?._id === formData.team || p.team === formData.team);
+            setFormData(prev => ({
+                ...prev,
+                playerStats: teamPlayers.map(p => ({
+                    player: p._id,
+                    ign: p.ign,
+                    kills: 0,
+                    assists: 0,
+                    deaths: 0,
+                    matches: 0,
+                    mvpCount: 0
+                }))
+            }));
+        }
+    }, [formData.team, allPlayers]);
+
+    const handlePlayerStatChange = (index, field, value) => {
+        const newStats = [...formData.playerStats];
+        newStats[index][field] = Number(value);
+        setFormData({ ...formData, playerStats: newStats });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/admin/performance', formData);
+            const payload = {
+                ...formData,
+                placement: Number(formData.placement),
+                earnings: formData.earnings ? Number(formData.earnings) : 0,
+                eliminations: formData.eliminations ? Number(formData.eliminations) : 0,
+                wins: formData.wins ? Number(formData.wins) : 0,
+                matchesPlayed: formData.matchesPlayed ? Number(formData.matchesPlayed) : 0,
+                playerStats: formData.playerStats.map(stat => ({
+                    ...stat,
+                    kills: Number(stat.kills) || 0,
+                    assists: Number(stat.assists) || 0,
+                    deaths: Number(stat.deaths) || 0,
+                    matches: Number(stat.matches) || 0,
+                    mvpCount: Number(stat.mvpCount) || 0
+                }))
+            };
+            await api.post('/admin/performance', payload);
             setShowModal(false);
             fetchData();
-            setFormData({ team: '', tournamentName: '', placement: '', date: '', earnings: '', region: '' });
+            setFormData({ team: '', tournamentName: '', placement: '', date: '', earnings: '', region: '', matchesPlayed: '', eliminations: '', wins: '', playerStats: [] });
+            showToast.success('Performance added successfully');
         } catch (error) {
             console.error(error);
+            showToast.error('Failed to add performance');
         }
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('Delete performance entry?')) {
-            try {
-                await api.delete(`/admin/performance/${id}`);
-                fetchData();
-            } catch (error) {
-                console.error(error);
-            }
+    const handleDelete = (id) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteId) return;
+        try {
+            await api.delete(`/admin/performance/${deleteId}`);
+            fetchData();
+            showToast.success('Performance entry deleted');
+            setDeleteId(null);
+        } catch (error) {
+            console.error(error);
+            showToast.error('Failed to delete performance entry');
         }
     };
 
@@ -60,11 +130,16 @@ const AdminPerformance = () => {
     // Prepare chart data (sorted by date)
     const chartData = [...performances]
         .sort((a, b) => new Date(a.date) - new Date(b.date))
-        .map(p => ({
-            name: new Date(p.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-            earnings: Number(p.earnings) || 0,
-            placement: p.placement
-        }));
+        .map(p => {
+            const teamId = typeof p.team === 'object' ? p.team._id : p.team;
+            const team = teams.find(t => t._id === teamId);
+            return {
+                name: new Date(p.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                earnings: Number(p.earnings) || 0,
+                placement: p.placement,
+                teamName: team ? team.name : 'Unknown Team'
+            };
+        });
 
     if (loading) return (
         <div className="flex items-center justify-center h-full">
@@ -91,23 +166,59 @@ const AdminPerformance = () => {
                 </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-br from-blue-900/40 to-black/40 p-6 rounded-3xl border border-blue-500/20 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><DollarSign className="w-24 h-24 text-blue-400" /></div>
-                    <p className="text-blue-400 text-sm font-bold uppercase tracking-wider mb-1">Total Earnings</p>
-                    <h3 className="text-4xl font-black text-white">${totalEarnings.toLocaleString()}</h3>
-                </div>
-                <div className="bg-gradient-to-br from-purple-900/40 to-black/40 p-6 rounded-3xl border border-purple-500/20 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Trophy className="w-24 h-24 text-purple-400" /></div>
-                    <p className="text-purple-400 text-sm font-bold uppercase tracking-wider mb-1">Total Wins</p>
-                    <h3 className="text-4xl font-black text-white">{totalWins}</h3>
-                </div>
-                <div className="bg-gradient-to-br from-emerald-900/40 to-black/40 p-6 rounded-3xl border border-emerald-500/20 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><TrendingUp className="w-24 h-24 text-emerald-400" /></div>
-                    <p className="text-emerald-400 text-sm font-bold uppercase tracking-wider mb-1">Best Placement</p>
-                    <h3 className="text-4xl font-black text-white">#{topPlacement}</h3>
-                </div>
+
+
+            {/* Team Standings Section */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-bold text-white mb-2 flex items-center">
+                    <Users className="w-5 h-5 mr-2 text-purple-400" /> Team Standings
+                </h3>
+                {teams.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-900/50 rounded-2xl border border-white/5">
+                        <p className="text-gray-500">No teams found</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {teams.map(team => {
+                            const teamPerfs = performances.filter(p => p.team?._id === team._id || p.team === team._id);
+                            const earnings = teamPerfs.reduce((acc, curr) => acc + (Number(curr.earnings) || 0), 0);
+                            const wins = teamPerfs.reduce((acc, curr) => acc + (Number(curr.wins) || 0), 0);
+                            const matches = teamPerfs.reduce((acc, curr) => acc + (Number(curr.matchesPlayed) || 0), 0);
+                            const kills = teamPerfs.reduce((acc, curr) => acc + (Number(curr.eliminations) || 0), 0);
+
+                            return {
+                                ...team,
+                                earnings: earnings,
+                                wins: wins,
+                                matches: matches,
+                                kills: kills
+                            };
+                        })
+                            .sort((a, b) => b.earnings - a.earnings)
+                            .map(team => (
+                                <div key={team._id} className="bg-gray-900/40 border border-white/5 p-4 rounded-2xl flex items-center gap-4 hover:border-blue-500/30 transition-all group">
+                                    <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden">
+                                        {team.logo ? (
+                                            <img src={team.logo} alt={team.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-lg font-bold text-gray-500">{team.name.charAt(0)}</span>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-white truncate group-hover:text-blue-400 transition-colors">{team.name}</h4>
+                                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
+                                            <span className="flex items-center gap-1"><Trophy className="w-3 h-3 text-yellow-500" /> {team.wins} Wins</span>
+                                            <span className="flex items-center gap-1"><Gamepad2 className="w-3 h-3 text-blue-500" /> {team.matches} Matches</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-emerald-400 font-black text-lg">${team.earnings.toLocaleString()}</div>
+                                        <div className="text-xs text-gray-500 font-bold">{team.kills} Kills</div>
+                                    </div>
+                                </div>
+                            ))}
+                    </div>
+                )}
             </div>
 
             {/* Chart Section */}
@@ -115,8 +226,8 @@ const AdminPerformance = () => {
                 <h3 className="text-xl font-bold text-white mb-6 flex items-center">
                     <TrendingUp className="w-5 h-5 mr-2 text-blue-400" /> Earnings Trend
                 </h3>
-                <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                <div className="h-[300px] w-full min-w-0">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                         <AreaChart data={chartData}>
                             <defs>
                                 <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
@@ -130,7 +241,7 @@ const AdminPerformance = () => {
                             <Tooltip
                                 contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '8px' }}
                                 itemStyle={{ color: '#fff' }}
-                                formatter={(value) => [`$${value.toLocaleString()}`, 'Earnings']}
+                                formatter={(value, name, props) => [`$${value.toLocaleString()}`, props.payload.teamName]}
                             />
                             <Area type="monotone" dataKey="earnings" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorEarnings)" />
                         </AreaChart>
@@ -159,6 +270,8 @@ const AdminPerformance = () => {
                                     <span className="flex items-center"><Calendar className="w-3 h-3 mr-1" /> {new Date(perf.date).toLocaleDateString()}</span>
                                     <span>•</span>
                                     <span>{perf.team?.name || 'Unknown Team'}</span>
+                                    {perf.matchesPlayed > 0 && <span>• {perf.matchesPlayed} Matches</span>}
+                                    {perf.eliminations > 0 && <span>• {perf.eliminations} Kills</span>}
                                 </div>
                             </div>
                             <div className="flex items-center gap-6">
@@ -180,86 +293,188 @@ const AdminPerformance = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-                    <div className="bg-[#0a0a0a] rounded-3xl p-8 w-full max-w-lg border border-white/10 shadow-2xl relative overflow-hidden">
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200 overflow-y-auto">
+                    <div className="bg-[#0a0a0a] rounded-3xl p-8 w-full max-w-2xl border border-white/10 shadow-2xl relative overflow-hidden my-8">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
 
                         <div className="flex justify-between items-center mb-6 relative z-10">
-                            <h2 className="text-2xl font-black text-white">Add Performance</h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white transition-colors">
-                                <X className="w-6 h-6" />
+                            <div>
+                                <h2 className="text-2xl font-black text-white">Add Performance</h2>
+                                <p className="text-gray-400 text-xs mt-1">Record tournament results and stats</p>
+                            </div>
+                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-full">
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Team</label>
-                                <select
-                                    className="w-full p-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all"
-                                    value={formData.team}
-                                    onChange={e => setFormData({ ...formData, team: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Select Team</option>
-                                    {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-                                </select>
+                        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                            {/* Main Details */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Team</label>
+                                    <CustomSelect
+                                        options={teams}
+                                        value={formData.team}
+                                        onChange={(value) => setFormData({ ...formData, team: value })}
+                                        placeholder="Select Team"
+                                        labelKey="name"
+                                        valueKey="_id"
+                                        icon={Users}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Tournament Name</label>
+                                    <div className="relative group">
+                                        <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+                                        <input
+                                            type="text"
+                                            className="w-full pl-9 pr-4 py-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-gray-600"
+                                            placeholder="e.g. PMGC 2024"
+                                            value={formData.tournamentName}
+                                            onChange={e => setFormData({ ...formData, tournamentName: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tournament Name</label>
-                                <input
-                                    type="text"
-                                    className="w-full p-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all"
-                                    value={formData.tournamentName}
-                                    onChange={e => setFormData({ ...formData, tournamentName: e.target.value })}
-                                    required
-                                />
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Placement</label>
+                                    <div className="relative group">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 font-bold flex items-center justify-center">#</div>
+                                        <input
+                                            type="text"
+                                            placeholder="1"
+                                            className="w-full pl-8 pr-3 py-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all font-bold placeholder:text-gray-600"
+                                            value={formData.placement}
+                                            onChange={e => setFormData({ ...formData, placement: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Earnings</label>
+                                    <div className="relative group">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 font-bold flex items-center justify-center">$</div>
+                                        <input
+                                            type="number"
+                                            placeholder="50000"
+                                            className="w-full pl-8 pr-3 py-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all placeholder:text-gray-600"
+                                            value={formData.earnings}
+                                            onChange={e => setFormData({ ...formData, earnings: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Matches</label>
+                                    <div className="relative group">
+                                        <Gamepad2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+                                        <input
+                                            type="number"
+                                            placeholder="0"
+                                            className="w-full pl-9 pr-3 py-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all placeholder:text-gray-600"
+                                            value={formData.matchesPlayed}
+                                            onChange={e => setFormData({ ...formData, matchesPlayed: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Wins</label>
+                                    <div className="relative group">
+                                        <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-yellow-400 transition-colors" />
+                                        <input
+                                            type="number"
+                                            placeholder="0"
+                                            className="w-full pl-9 pr-3 py-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all placeholder:text-gray-600"
+                                            value={formData.wins}
+                                            onChange={e => setFormData({ ...formData, wins: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Team Kills</label>
+                                    <div className="relative group">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-red-400 transition-colors flex items-center justify-center font-bold">K</div>
+                                        <input
+                                            type="number"
+                                            placeholder="0"
+                                            className="w-full pl-9 pr-3 py-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all placeholder:text-gray-600"
+                                            value={formData.eliminations}
+                                            onChange={e => setFormData({ ...formData, eliminations: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Placement</label>
-                                    <input
-                                        type="text"
-                                        placeholder="#"
-                                        className="w-full p-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all"
-                                        value={formData.placement}
-                                        onChange={e => setFormData({ ...formData, placement: e.target.value })}
-                                    />
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Date</label>
+                                    <div className="relative group">
+                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+                                        <input
+                                            type="date"
+                                            className="w-full pl-9 pr-3 py-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all placeholder:text-gray-600 [color-scheme:dark]"
+                                            value={formData.date}
+                                            onChange={e => setFormData({ ...formData, date: e.target.value })}
+                                            required
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Earnings</label>
-                                    <input
-                                        type="number"
-                                        placeholder="$"
-                                        className="w-full p-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all"
-                                        value={formData.earnings}
-                                        onChange={e => setFormData({ ...formData, earnings: e.target.value })}
-                                    />
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider ml-1">Region</label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-green-400 transition-colors" />
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Global"
+                                            className="w-full pl-9 pr-3 py-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all placeholder:text-gray-600"
+                                            value={formData.region}
+                                            onChange={e => setFormData({ ...formData, region: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Date</label>
-                                    <input
-                                        type="date"
-                                        className="w-full p-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all"
-                                        value={formData.date}
-                                        onChange={e => setFormData({ ...formData, date: e.target.value })}
-                                        required
-                                    />
+                            {/* Player Stats Section */}
+                            {formData.playerStats.length > 0 && (
+                                <div className="space-y-4 pt-4 border-t border-white/10">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-sm font-bold text-white flex items-center">
+                                            <Users className="w-4 h-4 mr-2 text-blue-400" />
+                                            Player Statistics
+                                        </h3>
+                                        <span className="text-[10px] text-gray-500 uppercase tracking-wider">Detailed Breakdown</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-3 max-h-56 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
+                                        {formData.playerStats.map((stat, index) => (
+                                            <div key={stat.player} className="bg-black/20 p-3 rounded-xl border border-white/5 flex flex-col sm:flex-row sm:items-center gap-4">
+                                                <div className="min-w-[100px]">
+                                                    <div className="font-bold text-blue-400 text-sm truncate">{stat.ign}</div>
+                                                    <div className="text-[10px] text-gray-500">Player</div>
+                                                </div>
+                                                <div className="grid grid-cols-4 gap-2 flex-1">
+                                                    <div>
+                                                        <label className="text-[9px] text-gray-500 uppercase block mb-1">Kills</label>
+                                                        <input type="number" className="w-full p-2 bg-white/5 rounded-lg border border-white/10 text-white text-sm text-center focus:border-blue-500 focus:outline-none transition-colors" value={stat.kills} onChange={e => handlePlayerStatChange(index, 'kills', e.target.value)} />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[9px] text-gray-500 uppercase block mb-1">Assists</label>
+                                                        <input type="number" className="w-full p-2 bg-white/5 rounded-lg border border-white/10 text-white text-sm text-center focus:border-blue-500 focus:outline-none transition-colors" value={stat.assists} onChange={e => handlePlayerStatChange(index, 'assists', e.target.value)} />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[9px] text-gray-500 uppercase block mb-1">Matches</label>
+                                                        <input type="number" className="w-full p-2 bg-white/5 rounded-lg border border-white/10 text-white text-sm text-center focus:border-blue-500 focus:outline-none transition-colors" value={stat.matches} onChange={e => handlePlayerStatChange(index, 'matches', e.target.value)} />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[9px] text-gray-500 uppercase block mb-1">MVP</label>
+                                                        <input type="number" className="w-full p-2 bg-white/5 rounded-lg border border-white/10 text-yellow-400 font-bold text-sm text-center focus:border-yellow-500 focus:outline-none transition-colors" value={stat.mvpCount} onChange={e => handlePlayerStatChange(index, 'mvpCount', e.target.value)} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Region</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-3 bg-white/5 text-white rounded-xl border border-white/10 focus:border-blue-500 focus:outline-none focus:bg-white/10 transition-all"
-                                        value={formData.region}
-                                        onChange={e => setFormData({ ...formData, region: e.target.value })}
-                                    />
-                                </div>
-                            </div>
+                            )}
 
                             <div className="flex justify-end pt-4">
                                 <button
@@ -273,7 +488,18 @@ const AdminPerformance = () => {
                     </div>
                 </div>
             )}
-        </div>
+
+
+            <ConfirmationModal
+                isOpen={deleteId !== null}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Delete Performance"
+                message="Are you sure you want to delete this performance entry?"
+                confirmText="Delete"
+                isDanger={true}
+            />
+        </div >
     );
 };
 

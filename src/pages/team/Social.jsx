@@ -5,14 +5,18 @@ import PremiumBlur from '../../components/common/PremiumBlur';
 
 const TeamSocial = () => {
     const [data, setData] = useState(null);
+    const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulating fetch or fetch real data to blur
         const fetchData = async () => {
             try {
-                const { data } = await api.get('/team/social-analytics');
-                setData(data);
+                const [analyticsRes, historyRes] = await Promise.all([
+                    api.get('/team/social-analytics'),
+                    api.get('/team/analytics/history')
+                ]);
+                setData(analyticsRes.data);
+                setHistory(historyRes.data);
             } catch (error) {
                 console.error(error);
             } finally {
@@ -22,62 +26,94 @@ const TeamSocial = () => {
         fetchData();
     }, []);
 
-    const mockHistory = [
-        { date: '2023-01-01', followers: 5000, engagement: 2.5 },
-        { date: '2023-01-05', followers: 5200, engagement: 3.1 },
-        { date: '2023-01-10', followers: 5500, engagement: 2.8 },
-        { date: '2023-01-15', followers: 5800, engagement: 4.2 },
-        { date: '2023-01-20', followers: 6000, engagement: 3.5 },
-    ];
-
     if (loading) return (
         <div className="flex justify-center items-center h-full text-white">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
     );
 
+    const overview = data?.overview || { totalFollowers: 0, totalReach: 0, avgEngagement: 0, totalImpressions: 0 };
+
     return (
         <div>
-            <h1 className="text-3xl font-bold text-white mb-6 uppercase tracking-wide">Social Analytics <span className="text-sm font-normal text-gray-500 normal-case ml-2">(Data Locked)</span></h1>
+            <h1 className="text-3xl font-bold text-white mb-6 uppercase tracking-wide">Social Analytics</h1>
 
             {/* Top Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 {[
-                    { label: "Total Followers" },
-                    { label: "Total Reach" },
-                    { label: "Engagement Rate" },
-                    { label: "Impressions" }
+                    { label: "Total Followers", value: overview.totalFollowers.toLocaleString() },
+                    { label: "Total Reach", value: overview.totalReach.toLocaleString() },
+                    { label: "Engagement Rate", value: `${overview.avgEngagement}%` },
+                    { label: "Impressions", value: overview.totalImpressions.toLocaleString() }
                 ].map((stat, i) => (
                     <div key={i} className="bg-zinc-900 p-6 rounded-lg border border-zinc-800 relative h-full">
                         <h3 className="text-gray-400 text-xs uppercase tracking-wider mb-2">{stat.label}</h3>
-                        <p className="text-xl font-bold text-gray-500 uppercase tracking-tight select-none">Data Coming Soon</p>
+                        <p className="text-3xl font-bold text-white uppercase tracking-tight">{stat.value}</p>
                     </div>
                 ))}
             </div>
 
-            {/* Charts Section - UNLOCKED with Placeholder */}
+            {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800">
                     <h3 className="text-white font-bold mb-4">Follower Growth (30 Days)</h3>
-                    <div className="h-64 filter flex items-center justify-center border border-white/5 border-dashed rounded-xl bg-black/20">
-                        <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Growth Data Coming Soon</p>
+                    <div className="h-64 w-full">
+                        {history.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={history}>
+                                    <defs>
+                                        <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                                    <XAxis dataKey="date" stroke="#666" fontSize={12} tickFormatter={(val) => val.slice(5)} />
+                                    <YAxis stroke="#666" fontSize={12} />
+                                    <Tooltip contentStyle={{ backgroundColor: '#000', border: '1px solid #333' }} />
+                                    <Area type="monotone" dataKey="followers" stroke="#3b82f6" fillOpacity={1} fill="url(#colorFollowers)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-gray-500">No history data available</div>
+                        )}
                     </div>
                 </div>
                 <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800">
                     <h3 className="text-white font-bold mb-4">Engagement Trends</h3>
-                    <div className="h-64 filter flex items-center justify-center border border-white/5 border-dashed rounded-xl bg-black/20">
-                        <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Trend Data Coming Soon</p>
+                    <div className="h-64 w-full">
+                        {history.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={history}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                                    <XAxis dataKey="date" stroke="#666" fontSize={12} tickFormatter={(val) => val.slice(5)} />
+                                    <YAxis stroke="#666" fontSize={12} />
+                                    <Tooltip contentStyle={{ backgroundColor: '#000', border: '1px solid #333' }} />
+                                    <Line type="monotone" dataKey="engagement" stroke="#ec4899" strokeWidth={2} dot={false} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-gray-500">No trend data available</div>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Top Posts - UNLOCKED with Placeholder */}
-            <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800">
-                <h3 className="text-white font-bold mb-4">Top Performing Posts</h3>
-                <div className="flex items-center justify-center py-12 border border-white/5 border-dashed rounded-xl bg-black/20">
-                    <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Post Analytics Coming Soon</p>
+            {/* Platform Breakdown (Optional, using data.platforms) */}
+            {data?.platforms && data.platforms.length > 0 && (
+                <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800">
+                    <h3 className="text-white font-bold mb-4">Platform Breakdown</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        {data.platforms.map(p => (
+                            <div key={p._id} className="bg-black/20 p-4 rounded-lg border border-white/5">
+                                <p className="text-gray-400 text-xs uppercase">{p._id}</p>
+                                <p className="text-xl font-bold text-white">{p.followers.toLocaleString()}</p>
+                                <p className="text-xs text-gray-500">Followers</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

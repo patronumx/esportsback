@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { Download, Play, Maximize2, X, Search, Image as ImageIcon, Video, Upload, Camera, Trash2, Mic, Handshake } from 'lucide-react';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
+import { showToast } from '../../utils/toast';
 
 const TeamMedia = () => {
     const [media, setMedia] = useState([]);
+    const [deleteId, setDeleteId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [previewItem, setPreviewItem] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -58,7 +61,7 @@ const TeamMedia = () => {
             if (uploadType === 'media') {
                 fetchMedia();
             } else {
-                alert('Logo updated successfully! Refresh the page to see changes.');
+                showToast.success('Logo updated successfully! Refresh the page to see changes.');
             }
 
             setFile(null);
@@ -67,20 +70,28 @@ const TeamMedia = () => {
             setShowUploadModal(false);
         } catch (error) {
             console.error('Upload failed', error);
-            alert('Upload failed: ' + (error.response?.data?.message || 'Unknown error'));
+            console.error('Upload failed', error);
+            showToast.error('Upload failed: ' + (error.response?.data?.message || 'Unknown error'));
         } finally {
             setUploading(false);
         }
     };
 
-    const handleDelete = async (id, e) => {
-        e.stopPropagation(); // Prevent preview opening
-        if (!window.confirm("Are you sure you want to delete this file?")) return;
+    const handleDelete = (id, e) => {
+        e.stopPropagation();
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteId) return;
         try {
-            await api.delete(`/team/media/${id}`);
-            setMedia(media.filter(m => m._id !== id));
+            await api.delete(`/team/media/${deleteId}`);
+            setMedia(media.filter(m => m._id !== deleteId));
+            showToast.success('File deleted successfully');
+            setDeleteId(null);
         } catch (error) {
             console.error('Delete failed', error);
+            showToast.error('Failed to delete file');
         }
     };
 
@@ -323,6 +334,15 @@ const TeamMedia = () => {
                     </div>
                 </div>
             )}
+            <ConfirmationModal
+                isOpen={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Delete File"
+                message="Are you sure you want to delete this file? This action cannot be undone."
+                confirmText="Delete File"
+                isDanger={true}
+            />
         </div>
     );
 };

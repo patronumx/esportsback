@@ -1,6 +1,6 @@
 import React from 'react';
 
-const PageHeader = ({ eyebrow, title, subtitle }) => {
+const PageHeader = ({ eyebrow, title, subtitle, image }) => {
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background with gradient orbs like home page */}
@@ -10,6 +10,21 @@ const PageHeader = ({ eyebrow, title, subtitle }) => {
       </div>
 
       <div className="relative max-w-4xl mx-auto text-center px-6 lg:px-8">
+
+        {/* Optional Profile Image */}
+        {image && (
+          <div className="mb-8 flex justify-center">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-violet-600 blur-xl opacity-50 rounded-full group-hover:opacity-75 transition-opacity"></div>
+              <img
+                src={image}
+                alt={title}
+                className="relative w-60 h-60 rounded-full border-4 border-white/10 shadow-2xl object-cover"
+              />
+            </div>
+          </div>
+        )}
+
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-500/10 border border-violet-500/40 rounded-full mb-6 backdrop-blur-sm">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
           <span className="text-xs font-semibold text-violet-300 uppercase tracking-wider">

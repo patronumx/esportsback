@@ -15,8 +15,27 @@ exports.createEvent = async (req, res) => {
 // Admin: Update Event
 exports.updateEvent = async (req, res) => {
     try {
-        const event = await Event.findByIdAndUpdate(req.params.eventId, req.body, { new: true });
+        console.log(`[Event Update] Updating Event ${req.params.eventId}. Body Keys: ${Object.keys(req.body).join(', ')}`);
+
+        // Reset notifications on ANY update to ensure fresh alerts
+        let updateData = { ...req.body };
+        console.log(`[Event Update] Forcing Reset of notification timers.`);
+        updateData.notificationSent = false;
+        updateData.lastNotificationSentAt = null;
+
+        // Remove logic that was conditional
+        // const hasScheduleChange = req.body.schedule || req.body.startTime;
+
+        const event = await Event.findByIdAndUpdate(
+            req.params.eventId,
+            updateData,
+            { new: true }
+        );
+
         if (!event) return res.status(404).json({ message: 'Event not found' });
+
+        console.log(`[Event Update] Result - LastSent: ${event.lastNotificationSentAt}`);
+
         res.json(event);
     } catch (err) {
         console.error(err.message);

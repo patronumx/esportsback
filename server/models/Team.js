@@ -18,6 +18,11 @@ const teamSchema = new mongoose.Schema({
         twitter: String,
         discord: String
     },
+    // Notification Settings
+    notificationContact: {
+        whatsapp: { type: String }, // Dedicated number for alerts
+        instagram: { type: String } // Dedicated profile for alerts
+    },
     // Relations
     players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }], // Linked registered players
 

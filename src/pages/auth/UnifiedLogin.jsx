@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Shield, Users, ArrowLeft, Loader } from 'lucide-react';
+import { showToast } from '../../utils/toast';
 
 const UnifiedLogin = ({ type }) => {
     // type: 'team' | 'admin'
@@ -36,6 +37,7 @@ const UnifiedLogin = ({ type }) => {
         setLoading(true);
         try {
             await login(email, password, theme.role);
+            showToast.success("Logged in successfully");
             navigate(theme.redirect);
         } catch (err) {
             console.error('Login Component Error:', err);

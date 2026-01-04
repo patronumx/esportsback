@@ -9,6 +9,8 @@ const Media = require('../models/Media');
 const Performance = require('../models/Performance');
 const RevisionRequest = require('../models/RevisionRequest');
 const Notification = require('../models/Notification');
+const PerformanceLog = require('../models/PerformanceLog');
+const Tournament = require('../models/Tournament');
 const { generateDummyAnalytics } = require('../services/socialAnalyticsService');
 const multer = require('multer');
 const { uploadImage, uploadVideo } = require('../services/cloudinaryService');
@@ -67,6 +69,24 @@ router.put('/events/:id/status', async (req, res) => {
     }
 });
 
+// Confirm Event Attendance
+router.put('/events/:id/confirm', async (req, res) => {
+    try {
+        const event = await Event.findOneAndUpdate(
+            { _id: req.params.id, team: req.user.teamId },
+            {
+                confirmationStatus: 'Confirmed',
+                // notificationSent: false // Optionally reset or keep handling separate
+            },
+            { new: true }
+        );
+        if (!event) return res.status(404).json({ message: 'Event not found' });
+        res.json(event);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 router.get('/media', async (req, res) => {
     try {
         const media = await Media.find({ team: req.user.teamId }).sort({ createdAt: -1 });
@@ -85,6 +105,38 @@ router.get('/performance-history', async (req, res) => {
     }
 });
 
+// Add Team Performance
+router.post('/performance', async (req, res) => {
+    try {
+        const { tournamentName, placement, earnings, wins, eliminations, matchesPlayed, date, region } = req.body;
+
+        const performance = await Performance.create({
+            team: req.user.teamId,
+            tournamentName,
+            placement,
+            earnings: earnings || 0,
+            wins: wins || 0,
+            eliminations: eliminations || 0,
+            matchesPlayed: matchesPlayed || 0,
+            date: date || new Date(),
+            region
+        });
+
+        // Log
+        await AuditLog.create({
+            action: 'ADD_PERFORMANCE',
+            performedBy: req.user._id,
+            targetResource: 'Performance',
+            targetId: performance._id,
+            details: { tournamentName, placement }
+        });
+
+        res.status(201).json(performance);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 router.get('/roster', async (req, res) => {
     try {
         const team = await Team.findById(req.user.teamId).populate('players');
@@ -96,8 +148,39 @@ router.get('/roster', async (req, res) => {
 
 router.get('/social-analytics', async (req, res) => {
     try {
-        const data = generateDummyAnalytics(req.user.teamId);
-        res.json(data);
+        // Fetch latest snapshot for each platform
+        // Simple approach: Find last 5 snapshots for this team (assuming 1 per platform)
+        // Better: Aggregate to get latest per platform
+        const latestStats = await SocialAnalyticsSnapshot.aggregate([
+            { $match: { team: req.user.teamId } },
+            { $sort: { capturedAt: -1 } },
+            {
+                $group: {
+                    _id: "$platform",
+                    followers: { $first: "$followers" },
+                    engagementRate: { $first: "$engagementRate" },
+                    reach: { $first: "$reach" },
+                    impressions: { $first: "$impressions" },
+                    capturedAt: { $first: "$capturedAt" }
+                }
+            }
+        ]);
+
+        const totals = latestStats.reduce((acc, curr) => ({
+            totalFollowers: acc.totalFollowers + (curr.followers || 0),
+            totalReach: acc.totalReach + (curr.reach || 0),
+            avgEngagement: acc.avgEngagement + (curr.engagementRate || 0),
+            totalImpressions: acc.totalImpressions + (curr.impressions || 0)
+        }), { totalFollowers: 0, totalReach: 0, avgEngagement: 0, totalImpressions: 0 });
+
+        if (latestStats.length > 0) {
+            totals.avgEngagement = (totals.avgEngagement / latestStats.length).toFixed(2);
+        }
+
+        res.json({
+            overview: totals,
+            platforms: latestStats
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -105,19 +188,31 @@ router.get('/social-analytics', async (req, res) => {
 
 router.get('/analytics/history', async (req, res) => {
     try {
-        // Mock history data for now, or fetch from SocialAnalyticsSnapshot if available
-        const history = [];
-        const today = new Date();
-        for (let i = 30; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(date.getDate() - i);
-            history.push({
-                date: date.toISOString().split('T')[0],
-                followers: 10000 + Math.floor(Math.random() * 5000) + (i * 100),
-                engagement: 2.5 + (Math.random() * 1.5)
-            });
-        }
-        res.json(history);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const history = await SocialAnalyticsSnapshot.aggregate([
+            {
+                $match: {
+                    team: req.user.teamId,
+                    capturedAt: { $gte: thirtyDaysAgo }
+                }
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$capturedAt" } },
+                    totalFollowers: { $sum: "$followers" },
+                    avgEngagement: { $avg: "$engagementRate" }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        res.json(history.map(h => ({
+            date: h._id,
+            followers: h.totalFollowers,
+            engagement: parseFloat(h.avgEngagement.toFixed(2))
+        })));
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -192,23 +287,79 @@ router.get('/audit-logs', async (req, res) => {
 });
 
 // Update Manual Roster
+// Update Manual Roster and Sync to Players
 router.post('/roster', async (req, res) => {
     try {
-        const { roster } = req.body; // Expecting array of { name, role, image }
+        const { roster } = req.body; // Expecting array of { name, role, ... }
+        const teamId = req.user.teamId;
 
-        // Validate if needed (e.g. max 6 players)
-        if (roster && roster.length > 6) {
-            return res.status(400).json({ message: 'Roster cannot exceed 6 players' });
+        // Validate
+        if (roster && roster.length > 8) {
+            return res.status(400).json({ message: 'Roster cannot exceed 8 players' });
         }
 
+        // 1. Update the legacy 'roster' field (for backward compat if needed, or UI display)
         const team = await Team.findByIdAndUpdate(
-            req.user.teamId,
+            teamId,
             { roster },
             { new: true }
         );
 
-        res.json(team);
+        // 2. Sync to Player Documents
+        // Strategy: We will iterate through the roster provided. 
+        // We attempt to find existing Players by UID or IGN+Team.
+        // If found, update. If not, create.
+        // Then we update the Team.players array to match this list.
+
+        const playerIds = [];
+
+        for (const p of roster) {
+            if (!p.name && !p.ign) continue; // Skip empty entries
+
+            // Try to find existing player for this team
+            let player = null;
+            if (p.uid) {
+                player = await Player.findOne({ team: teamId, uid: p.uid });
+            }
+            if (!player && p.ign) {
+                player = await Player.findOne({ team: teamId, ign: p.ign });
+            }
+
+            const playerData = {
+                team: teamId,
+                name: p.name || p.ign,
+                ign: p.ign || p.name,
+                role: p.role,
+                uid: p.uid,
+                avatarUrl: p.image, // Map image to avatarUrl
+                image: p.image,    // Keep consistency
+                socialLinks: p.socialLinks || {}
+            };
+
+            if (player) {
+                // Update existing
+                player = await Player.findByIdAndUpdate(player._id, playerData, { new: true });
+            } else {
+                // Create new
+                player = await Player.create(playerData);
+            }
+            playerIds.push(player._id);
+        }
+
+        // 3. Update Team.players relation
+        // We replace the players list with the newly synced list. 
+        // Note: This effectively removes players from the 'players' array if they were removed from the 'roster' array in UI.
+        // However, the actual Player documents remain in DB (orphaned from team list, but still have teamId).
+        // Optionally we could unset teamId for removed players, but let's stick to updating the list for now.
+
+        await Team.findByIdAndUpdate(teamId, { players: playerIds });
+
+        // populate players for response
+        const updatedTeam = await Team.findById(teamId).populate('players');
+
+        res.json(updatedTeam);
     } catch (error) {
+        console.error("Roster Sync Error:", error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -414,10 +565,16 @@ router.put('/events/:id', async (req, res) => {
                 endTime,
                 location,
                 notes,
-                schedule
+                notes,
+                schedule,
+                // Force Reset Notifications
+                notificationSent: false,
+                lastNotificationSentAt: null
             },
             { new: true }
         );
+
+        console.log(`[Team Route] Event ${req.params.id} updated. Unconditionally reset notification timer.`);
 
         if (!event) {
             return res.status(404).json({ message: 'Event not found' });
@@ -651,6 +808,173 @@ router.post('/requests', async (req, res) => {
         res.status(201).json(request);
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+});
+
+
+
+// ... imports
+
+// [Existing code]
+
+// Performance Logging Routes
+
+// Upload Match Result
+router.post('/performance/log', upload.single('file'), async (req, res) => {
+    try {
+        const { tournamentName, category, rank, kills, notes, matchCount, maps } = req.body;
+
+        // Validation
+        if (!tournamentName || !rank || !kills) {
+            return res.status(400).json({ message: 'Tournament Name, Rank, and Kills are required' });
+        }
+
+        const parsedRank = parseInt(rank);
+        const parsedKills = parseInt(kills);
+        const parsedMatchCount = parseInt(matchCount) || 1;
+
+        let parsedMaps = [];
+        if (maps) {
+            try {
+                parsedMaps = JSON.parse(maps); // Expecting JSON array string from frontend
+            } catch (e) {
+                parsedMaps = typeof maps === 'string' ? [maps] : maps;
+            }
+        }
+
+        let screenshotUrl = null;
+
+        if (req.file) {
+            const result = await uploadImage(req.file.buffer);
+            screenshotUrl = result.secure_url;
+        }
+
+        const log = await PerformanceLog.create({
+            team: req.user.teamId,
+            tournamentName,
+            category: category || 'scrim', // Default
+            rank: parsedRank,
+            kills: parsedKills,
+            matchCount: parsedMatchCount,
+            maps: parsedMaps,
+            screenshotUrl,
+            notes
+        });
+
+        res.status(201).json(log);
+    } catch (error) {
+        console.error('Log Upload Error:', error);
+        res.status(500).json({ message: 'Failed to save result: ' + error.message });
+    }
+});
+
+
+// --- Tournament Management Routes ---
+
+// Create Tournament (and Sync Event)
+router.post('/tournament', async (req, res) => {
+    try {
+        const { name, totalDays, matchesPerDay, mapOrder } = req.body;
+
+        // 1. Create Tournament Config
+        const tournament = await Tournament.create({
+            team: req.user.teamId,
+            name,
+            totalDays,
+            matchesPerDay,
+            mapOrder: mapOrder || []
+        });
+
+        // 2. Auto-create Event for Scheduler
+        // Generate Schedule
+        const schedule = [];
+        const startDate = new Date();
+
+        for (let i = 0; i < totalDays; i++) {
+            const matches = [];
+            for (let j = 0; j < matchesPerDay; j++) {
+                matches.push({
+                    matchOrder: j + 1,
+                    map: (mapOrder && mapOrder[j]) ? mapOrder[j] : 'Erangel', // Use default or Erangel
+                    status: 'Pending'
+                });
+            }
+
+            const dayDate = new Date(startDate);
+            dayDate.setDate(startDate.getDate() + i);
+
+            schedule.push({
+                day: i + 1,
+                date: dayDate,
+                matches
+            });
+        }
+
+        // Import Event model if not already (assuming it's avail in scope or required at top)
+        const Event = require('../models/Event');
+        await Event.create({
+            team: req.user.teamId,
+            title: name,
+            type: 'tournament',
+            startTime: startDate,
+            schedule,
+            status: 'Upcoming'
+        });
+
+        res.status(201).json(tournament);
+    } catch (error) {
+        console.error("Tournament Creation Error:", error);
+        res.status(500).json({ message: 'Failed to create tournament' });
+    }
+});
+
+// Get Tournaments
+router.get('/tournaments', async (req, res) => {
+    try {
+        const tournaments = await Tournament.find({ team: req.user.teamId }).sort({ createdAt: -1 });
+        res.json(tournaments);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch tournaments' });
+    }
+});
+
+// --- Performance Logs ---
+router.get('/performance/logs', async (req, res) => {
+    try {
+        const logs = await PerformanceLog.find({ team: req.user.teamId })
+            .sort({ date: -1 })
+            .limit(50);
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Delete Log
+router.delete('/performance/log/:id', async (req, res) => {
+    try {
+        await PerformanceLog.findOneAndDelete({ _id: req.params.id, team: req.user.teamId });
+        res.json({ message: 'Log deleted' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Update Team Settings (Notifications)
+router.put('/settings', async (req, res) => {
+    try {
+        const { whatsapp, instagram } = req.body;
+        const team = await Team.findByIdAndUpdate(
+            req.user.teamId,
+            {
+                'notificationContact.whatsapp': whatsapp,
+                'notificationContact.instagram': instagram
+            },
+            { new: true }
+        );
+        res.json(team);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update settings' });
     }
 });
 

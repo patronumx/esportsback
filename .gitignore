@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment Variables
+.env
+.env.production
+.env.local
+
+# WhatsApp Session
+.wwebjs_auth
+server/.wwebjs_auth
+session

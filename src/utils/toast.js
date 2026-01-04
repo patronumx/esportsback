@@ -13,42 +13,50 @@ const toastStyle = {
 };
 
 export const showToast = {
-    error: (message) => {
-        toast.error(message, {
+    error: (message, options) => {
+        return toast.error(message, {
             style: {
                 ...toastStyle,
                 borderLeft: '4px solid #ef4444', // Red border for error
                 boxShadow: '0 0 20px rgba(239, 68, 68, 0.15)',
+                ...options?.style,
             },
             iconTheme: {
                 primary: '#ef4444',
                 secondary: '#fff',
+                ...options?.iconTheme, // Merge custom icon theme
             },
+            ...options, // Merge other options
         });
     },
 
-    success: (message) => {
-        toast.success(message, {
+    success: (message, options) => {
+        return toast.success(message, {
             style: {
                 ...toastStyle,
                 borderLeft: '4px solid #22c55e', // Green border for success
                 boxShadow: '0 0 20px rgba(34, 197, 94, 0.15)',
+                ...options?.style, // Merge custom styles
             },
             iconTheme: {
                 primary: '#22c55e',
                 secondary: '#fff',
+                ...options?.iconTheme, // Merge custom icon theme
             },
+            ...options, // Merge other options
         });
     },
 
-    info: (message) => {
-        toast(message, {
+    info: (message, options) => {
+        return toast(message, {
             icon: 'ℹ️',
             style: {
                 ...toastStyle,
                 borderLeft: '4px solid #3b82f6', // Blue border for info
                 boxShadow: '0 0 20px rgba(59, 130, 246, 0.15)',
+                ...options?.style, // Merge custom styles
             },
+            ...options, // Merge other options
         });
     },
 
@@ -63,6 +71,20 @@ export const showToast = {
                 background: 'linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(69, 26, 3, 0.9))', // Subtle gradient
             },
         });
+    },
+
+    loading: (message) => {
+        return toast.loading(message, {
+            style: {
+                ...toastStyle,
+                borderLeft: '4px solid #3b82f6', // Blue
+                boxShadow: '0 0 20px rgba(59, 130, 246, 0.15)',
+            },
+        });
+    },
+
+    dismiss: (id) => {
+        toast.dismiss(id);
     }
 };
 

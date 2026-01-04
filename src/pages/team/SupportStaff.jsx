@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { User, Plus, X, Upload, Save } from 'lucide-react';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
+import { showToast } from '../../utils/toast';
 
 const STAFF_ROLES = ['Coach', 'Analyst'];
 
 const SupportStaff = () => {
     const [team, setTeam] = useState(null);
+    const [deleteIndex, setDeleteIndex] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editingStaffRole, setEditingStaffRole] = useState(null);
     const [editForm, setEditForm] = useState({ name: '', role: '', experience: '', age: '', instagram: '', twitter: '', discord: '', image: '', file: null });
@@ -22,8 +25,10 @@ const SupportStaff = () => {
         } catch (error) {
             console.error(error);
             if (error.response?.status === 403) {
-                alert('Access Denied: You might be logged in as a Player. Please log out and log in as a Team.');
-                window.location.href = '/login';
+                if (error.response?.status === 403) {
+                    showToast.error('Access Denied: Please log in as a Team.');
+                    window.location.href = '/login';
+                }
             }
         } finally {
             setLoading(false);
@@ -100,23 +105,31 @@ const SupportStaff = () => {
             const { data } = await api.post('/team/roster', { roster: cleanRoster });
             setTeam(data);
             setEditingStaffRole(null);
+            showToast.success('Staff member saved successfully');
         } catch (error) {
             console.error('Error saving staff:', error);
-            alert('Failed to save staff member');
+            showToast.error('Failed to save staff member');
         } finally {
             setUploading(false);
         }
     };
 
-    const handleRemove = async (index) => {
-        if (!confirm('Remove this staff member?')) return;
+    const handleRemove = (index) => {
+        setDeleteIndex(index);
+    };
+
+    const confirmRemove = async () => {
+        if (deleteIndex === null) return;
         try {
             const newRoster = [...(team.roster || [])];
-            newRoster.splice(index, 1);
+            newRoster.splice(deleteIndex, 1);
             const { data } = await api.post('/team/roster', { roster: newRoster });
             setTeam(data);
+            showToast.success('Staff member removed');
+            setDeleteIndex(null);
         } catch (error) {
             console.error(error);
+            showToast.error('Failed to remove staff member');
         }
     };
 
@@ -302,7 +315,17 @@ const SupportStaff = () => {
                     );
                 })}
             </div>
-        </div>
+
+            <ConfirmationModal
+                isOpen={deleteIndex !== null}
+                onClose={() => setDeleteIndex(null)}
+                onConfirm={confirmRemove}
+                title="Remove Staff"
+                message="Are you sure you want to remove this staff member?"
+                confirmText="Remove"
+                isDanger={true}
+            />
+        </div >
     );
 };
 

@@ -127,8 +127,8 @@ router.get('/teams', async (req, res, next) => {
         const limit = parseInt(req.query.limit) || 100; // Default to 100 to show all
         const skip = (page - 1) * limit;
 
-        const teams = await Team.find({ isPro: true }).skip(skip).limit(limit);
-        const total = await Team.countDocuments({ isPro: true });
+        const teams = await Team.find().skip(skip).limit(limit);
+        const total = await Team.countDocuments();
 
         res.json({
             success: true,
@@ -173,7 +173,88 @@ router.delete('/teams/:id', async (req, res) => {
     }
 });
 
+// Create Social Stats Snapshot
+router.post('/teams/:id/social-stats', async (req, res) => {
+    try {
+        const { platform, followers, engagementRate, reach, impressions, date } = req.body;
+
+        const snapshot = await SocialAnalyticsSnapshot.create({
+            team: req.params.id,
+            platform,
+            followers: Number(followers),
+            engagementRate: Number(engagementRate),
+            reach: Number(reach),
+            impressions: Number(impressions),
+            capturedAt: date ? new Date(date) : new Date()
+        });
+
+        res.status(201).json(snapshot);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // --- Players ---
+router.get('/players', async (req, res, next) => {
+    try {
+        const players = await Player.find().populate('team', 'name logoUrl');
+        res.json({ success: true, data: players });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/players', validate(playerSchema), async (req, res, next) => {
+    try {
+        const player = await Player.create(req.body);
+        if (req.body.team) {
+            await Team.findByIdAndUpdate(req.body.team, { $push: { players: player._id } });
+        }
+        res.status(201).json({ success: true, data: player });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/players/:id/broadcast', async (req, res) => {
+    try {
+        const player = await Player.findById(req.params.id);
+        if (!player) return res.status(404).json({ message: 'Player not found' });
+
+        const phone = player.phone || player.phoneNumber; // Adjusted to match schema (phone) but handle fallback just in case
+        if (!phone) return res.status(400).json({ message: 'No phone number found for this player.' });
+
+        const message = `*Broadcast Message from Patronum Admin*\n\nHello ${player.ign},\n\n${req.body.message}`;
+
+        await whatsappService.sendMessage(phone, message);
+        res.json({ success: true, message: 'Broadcast sent successfully via WhatsApp' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.post('/teams/:id/broadcast', async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.id);
+        if (!team) return res.status(404).json({ message: 'Team not found' });
+
+        const phone = team.notificationContact?.whatsapp || team.phoneNumber;
+        if (!phone) return res.status(400).json({ message: 'No WhatsApp contact found for this team.' });
+
+        const events = await Event.find({ team: team._id, startTime: { $gte: new Date() } }).sort({ startTime: 1 });
+        const eventSummary = events.length > 0
+            ? events.map(e => `• ${e.title} - ${new Date(e.startTime).toLocaleString()}`).join('\n')
+            : 'No upcoming events scheduled.';
+
+        const message = `*Broadcast Message from Patronum Admin*\n\nHello ${team.name},\n\n${req.body.message}\n\n*Upcoming Schedule:*\n${eventSummary}`;
+
+        await whatsappService.sendMessage(phone, message);
+        res.json({ success: true, message: 'Broadcast sent successfully via WhatsApp' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 router.post('/teams/:teamId/players', validate(playerSchema), async (req, res, next) => {
     try {
         const player = await Player.create({ ...req.body, team: req.params.teamId });
@@ -184,9 +265,41 @@ router.post('/teams/:teamId/players', validate(playerSchema), async (req, res, n
     }
 });
 
+// Get Team Players (Auto-Sync Legacy Roster if needed)
 router.get('/teams/:teamId/players', async (req, res, next) => {
     try {
-        const players = await Player.find({ team: req.params.teamId });
+        let players = await Player.find({ team: req.params.teamId });
+        const team = await Team.findById(req.params.teamId);
+
+        // Auto-Sync: If no Player documents exist but legacy roster does, migrate them.
+        if (players.length === 0 && team && team.roster && team.roster.length > 0) {
+            console.log(`[Admin] Auto-syncing roster for team ${team.name}...`);
+            const playerIds = [];
+            for (const p of team.roster) {
+                if (!p.name && !p.ign) continue;
+
+                const playerData = {
+                    team: team._id,
+                    name: p.name || p.ign,
+                    ign: p.ign || p.name,
+                    role: p.role,
+                    uid: p.uid,
+                    avatarUrl: p.image,
+                    image: p.image,
+                    socialLinks: p.socialLinks || {}
+                };
+
+                const newPlayer = await Player.create(playerData);
+                playerIds.push(newPlayer._id);
+            }
+
+            // Link to team
+            await Team.findByIdAndUpdate(team._id, { players: playerIds });
+
+            // Refetch
+            players = await Player.find({ team: team._id });
+        }
+
         res.json({ success: true, data: players });
     } catch (error) {
         next(error);
@@ -425,6 +538,42 @@ router.get('/social/analytics/:teamId', async (req, res) => {
 });
 
 // --- Notifications ---
+const whatsappService = require('../services/whatsappService');
+const { checkAndSendNotifications } = require('../services/notificationScheduler');
+
+router.get('/schedule', async (req, res) => {
+    try {
+        // Fetch upcoming events for the broadcast schedule
+        const events = await Event.find({ startTime: { $gte: new Date() } })
+            .populate('team', 'name logoUrl notificationContact phoneNumber')
+            .sort({ startTime: 1 });
+        res.json({ success: true, data: events });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.get('/whatsapp/status', (req, res) => {
+    res.json(whatsappService.getStatus());
+});
+
+router.post('/whatsapp/logout', async (req, res) => {
+    await whatsappService.logout();
+    // Re-initialize to allow new login
+    whatsappService.initialize();
+    res.json({ message: 'Logged out' });
+});
+
+router.post('/notifications/trigger', async (req, res) => {
+    try {
+        console.log('Manual notification trigger received.');
+        await checkAndSendNotifications(true); // isManual = true
+        res.json({ message: 'Manual notification check triggered' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 router.post('/notifications', async (req, res) => {
     try {
         const notification = await Notification.create(req.body);
@@ -474,6 +623,115 @@ router.get('/audit-logs', async (req, res) => {
     }
 });
 
+
+// --- Team Analytics ---
+router.get('/analytics/teams', async (req, res) => {
+    try {
+        const totalTeams = await Team.countDocuments();
+
+        // Teams by Region
+        const teamsByRegion = await Team.aggregate([
+            { $group: { _id: "$region", count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+        ]);
+
+        // Teams Growth (Mock history for now since we don't have createdAt on Team model fully reliable or populated historically)
+        // Actually, let's try to use createdAt if available, otherwise mock based on _id timestamps or just random mock for demo
+        // Assuming createdAt exists (Mongoose defaults):
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        const teamsGrowth = await Team.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: sixMonthsAgo }
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        // Top Teams by Performance (using dummy logic or relationship count)
+        // Let's use event count as a proxy for activity/performance for now
+        const activeTeams = await Team.aggregate([
+            {
+                $lookup: {
+                    from: 'events',
+                    localField: 'events',
+                    foreignField: '_id',
+                    as: 'eventDetails'
+                }
+            },
+            {
+                $project: {
+                    name: 1,
+                    eventCount: { $size: "$eventDetails" },
+                    logoUrl: 1
+                }
+            },
+            { $sort: { eventCount: -1 } },
+            { $limit: 5 }
+        ]);
+
+        // Top Social Teams (by Followers)
+        // Get latest snapshot per team per platform, then sum followers
+        const socialStats = await SocialAnalyticsSnapshot.aggregate([
+            { $sort: { capturedAt: -1 } },
+            {
+                $group: {
+                    _id: { team: "$team", platform: "$platform" },
+                    followers: { $first: "$followers" }
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id.team",
+                    totalFollowers: { $sum: "$followers" }
+                }
+            },
+            { $sort: { totalFollowers: -1 } },
+            { $limit: 5 },
+            {
+                $lookup: {
+                    from: 'teams',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'teamDetails'
+                }
+            },
+            {
+                $project: {
+                    name: { $arrayElemAt: ["$teamDetails.name", 0] },
+                    followers: "$totalFollowers"
+                }
+            }
+        ]);
+
+        const teamsList = await Team.find().select('name region game logoUrl isPro');
+
+        const allSocialStats = await SocialAnalyticsSnapshot.find()
+            .populate('team', 'name logoUrl')
+            .sort({ capturedAt: -1 })
+            .limit(50); // Limit to last 50 entries for performance
+
+        res.json({
+            totalTeams,
+            teamsByRegion,
+            teamsGrowth,
+            activeTeams,
+            teamsList,
+            socialStats,
+            allSocialStats
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 // --- Service Requests ---
 router.get('/requests', async (req, res) => {

@@ -110,7 +110,8 @@ const generateTeamDashboardStats = async (teamId) => {
         } : null,
         unreadNotifications,
         teamRoster: players, // Keeping for backward compat if needed
-        activeRoster: team.roster || [] // The manual roster with new fields
+        activeRoster: team.roster || [], // The manual roster with new fields
+        notificationContact: team.notificationContact || {}
     };
 };
 

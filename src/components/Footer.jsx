@@ -215,7 +215,7 @@ const Footer = () => {
         </div>
 
         <div className="pt-8 border-t border-violet-500/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-slate-500">© 2025 Patronum Esports. All rights reserved.</p>
+          <p className="text-xs text-slate-500">© 2026 Patronum Esports. All rights reserved.</p>
           <p className="text-xs text-slate-500">
             Powered by <span className="text-violet-400">PatronumX</span>
           </p>

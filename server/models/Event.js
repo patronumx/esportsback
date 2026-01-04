@@ -18,7 +18,10 @@ const eventSchema = new mongoose.Schema({
             status: { type: String, default: 'Pending' }
         }]
     }],
-    status: { type: String, enum: ['Upcoming', 'Completed', 'Cancelled'], default: 'Upcoming' }
+    status: { type: String, enum: ['Upcoming', 'Completed', 'Cancelled'], default: 'Upcoming' },
+    confirmationStatus: { type: String, enum: ['Pending', 'Confirmed'], default: 'Pending' },
+    notificationSent: { type: Boolean, default: false },
+    lastNotificationSentAt: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Event', eventSchema);

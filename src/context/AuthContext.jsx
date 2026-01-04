@@ -17,17 +17,17 @@ export const AuthProvider = ({ children }) => {
                     // Fix for previously incorrect storage structure
                     if (parsedUser.data && parsedUser.data.user) {
                         console.log('Restoring user (structure A):', parsedUser.data.user.role);
-                        setUser(parsedUser.data.user);
+                        setUser({ ...parsedUser.data.user, token }); // Inject Token
                         localStorage.setItem('user', JSON.stringify(parsedUser.data.user));
                     } else if (parsedUser.success && parsedUser.data) {
                         // Another potential bad structure
                         const u = parsedUser.data.user || parsedUser.data;
                         console.log('Restoring user (structure B):', u.role);
-                        setUser(u);
+                        setUser({ ...u, token }); // Inject Token
                         localStorage.setItem('user', JSON.stringify(u));
                     } else {
                         console.log('Restoring user (direct):', parsedUser.role);
-                        setUser(parsedUser);
+                        setUser({ ...parsedUser, token }); // Inject Token
                     }
                 } catch (e) {
                     console.error("Error parsing stored user", e);
@@ -64,7 +64,8 @@ export const AuthProvider = ({ children }) => {
 
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
-            setUser(user);
+            // FIXED: Include token in user state so safe checks like user.token work
+            setUser({ ...user, token });
             return user;
         } catch (error) {
             console.error('Login Error in Context:', error);

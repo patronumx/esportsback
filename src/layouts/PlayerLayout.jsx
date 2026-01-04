@@ -4,6 +4,7 @@ import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, Calendar, Users, LogOut, Menu, X, Crosshair, User, Upload, Camera, Search } from 'lucide-react';
 import Hyperspeed from '../components/Hyperspeed';
+import { showToast } from '../utils/toast';
 
 const PlayerLayout = () => {
     const { logout, user, updateUser } = useAuth();
@@ -15,6 +16,7 @@ const PlayerLayout = () => {
 
     const handleLogout = () => {
         logout();
+        showToast.success('Logged out successfully');
         navigate('/talent/player/login');
     };
 
@@ -45,7 +47,7 @@ const PlayerLayout = () => {
 
         } catch (error) {
             console.error('Avatar upload failed', error);
-            alert('Failed to upload avatar');
+            showToast.error('Failed to upload avatar');
         } finally {
             setUploading(false);
         }

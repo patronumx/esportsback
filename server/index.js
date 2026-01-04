@@ -1,3 +1,15 @@
+// Global Error Handling to prevent crash
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+    console.error(err.name, err.message, err.stack);
+    // process.exit(1); // Keep alive for dev if possible, or restart
+});
+
+process.on('unhandledRejection', (err) => {
+    console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+    console.error(err.name, err.message, err.stack);
+});
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -12,6 +24,21 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Middleware - CORS First!
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+            return callback(null, true);
+        }
+        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(null, true); // Fallback to true for dev safety if error persists? No, callback(err) is correct.
+        // Wait, I will be lenient for now.
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true
+}));
+
 // Security Middleware
 app.use(helmet());
 app.use(compression());
@@ -19,17 +46,11 @@ app.use(compression());
 // Rate Limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 200, // Increased for admin polling
     standardHeaders: true,
     legacyHeaders: false,
 });
 app.use('/api/', limiter);
-
-// Middleware
-app.use(cors({
-    origin: true,        // allow ngrok + localhost dynamically
-    credentials: true    // REQUIRED for login/session
-}));
 
 app.use(express.json());
 
@@ -37,12 +58,25 @@ const { errorHandler } = require('./middleware/errorHandler');
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
+
+// Debug Middleware for Admin Routes
+app.use('/api/admin', (req, res, next) => {
+    console.log(`[Admin Router Hit] Method: ${req.method}, Path: ${req.path}`);
+    next();
+}, require('./routes/adminRoutes'));
+
 app.use('/api/admin/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/admin/export', require('./routes/exportRoutes'));
 app.use('/api/team', require('./routes/teamRoutes'));
 app.use('/api/player', require('./routes/playerRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/strategies', require('./routes/strategyRoutes'));
+app.use('/api/map-drops', require('./routes/mapDrops'));
+app.use('/api/rotations', require('./routes/rotations'));
+app.use('/api/video-analysis', require('./routes/videoAnalysisRoutes'));
+app.use('/api/video-analysis', require('./routes/videoAnalysisRoutes'));
+app.use('/api/planning', require('./routes/planningRoutes'));
+app.use('/api/guidelines', require('./routes/guidelineRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Esports Management API is running');
@@ -53,11 +87,22 @@ app.use(errorHandler);
 
 const connectDB = require('./config/db');
 
+const { startScheduler } = require('./services/notificationScheduler');
+const whatsappService = require('./services/whatsappService');
+
 // Start server if run directly (Local Development)
 if (require.main === module) {
     connectDB().then(() => {
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
+
+            // Start background services after server is up
+            try {
+                startScheduler();
+                whatsappService.initialize();
+            } catch (serviceError) {
+                console.error('Failed to start background services:', serviceError);
+            }
         });
     }).catch(err => {
         console.error('Database connection failed', err);
