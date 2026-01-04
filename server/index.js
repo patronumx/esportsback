@@ -88,8 +88,13 @@ app.use(errorHandler);
 
 const connectDB = require('./config/db');
 
-// const { startScheduler } = require('./services/notificationScheduler');
-// const whatsappService = require('./services/whatsappService');
+// Conditionally load services only for localhost (not Vercel)
+let startScheduler, whatsappService;
+if (!process.env.VERCEL) {
+    const notificationScheduler = require('./services/notificationScheduler');
+    startScheduler = notificationScheduler.startScheduler;
+    whatsappService = require('./services/whatsappService');
+}
 
 // Start server if run directly (Local Development)
 if (require.main === module) {
@@ -97,10 +102,13 @@ if (require.main === module) {
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
 
-            // Start background services after server is up
+            // Start background services after server is up (localhost only)
             try {
-                // startScheduler();
-                // whatsappService.initialize();
+                if (startScheduler && whatsappService) {
+                    startScheduler();
+                    whatsappService.initialize();
+                    console.log('Background services started (localhost mode)');
+                }
             } catch (serviceError) {
                 console.error('Failed to start background services:', serviceError);
             }

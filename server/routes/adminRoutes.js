@@ -226,8 +226,12 @@ router.post('/players/:id/broadcast', async (req, res) => {
 
         const message = `*Broadcast Message from Patronum Admin*\n\nHello ${player.ign},\n\n${req.body.message}`;
 
-        // await whatsappService.sendMessage(phone, message);
-        res.json({ success: true, message: 'Broadcast sent successfully via WhatsApp' });
+        if (whatsappService) {
+            await whatsappService.sendMessage(phone, message);
+            res.json({ success: true, message: 'Broadcast sent successfully via WhatsApp' });
+        } else {
+            res.json({ success: false, message: 'WhatsApp service not available on Vercel' });
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -245,8 +249,12 @@ router.post('/teams/:id/broadcast', async (req, res) => {
         const eventSummary = events.length > 0
         const message = `*Broadcast Message from Patronum Admin*\n\nHello ${team.name},\n\n${req.body.message}\n\n*Upcoming Schedule:*\n${eventSummary}`;
 
-        // await whatsappService.sendMessage(phone, message); // Disabled for Vercel deployment
-        res.json({ success: false, message: 'WhatsApp service not available on Vercel' });
+        if (whatsappService) {
+            await whatsappService.sendMessage(phone, message);
+            res.json({ success: true, message: 'Broadcast sent successfully via WhatsApp' });
+        } else {
+            res.json({ success: false, message: 'WhatsApp service not available on Vercel' });
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -535,8 +543,13 @@ router.get('/social/analytics/:teamId', async (req, res) => {
 });
 
 // --- Notifications ---
-// const whatsappService = require('../services/whatsappService');
-// const { checkAndSendNotifications } = require('../services/notificationScheduler');
+// Conditionally load services only for localhost (not Vercel)
+let whatsappService, checkAndSendNotifications;
+if (!process.env.VERCEL) {
+    whatsappService = require('../services/whatsappService');
+    const notificationScheduler = require('../services/notificationScheduler');
+    checkAndSendNotifications = notificationScheduler.checkAndSendNotifications;
+}
 
 router.get('/schedule', async (req, res) => {
     try {
@@ -551,21 +564,32 @@ router.get('/schedule', async (req, res) => {
 });
 
 router.get('/whatsapp/status', (req, res) => {
-    res.json({ available: false, message: 'WhatsApp service disabled on Vercel' });
+    if (whatsappService) {
+        res.json(whatsappService.getStatus());
+    } else {
+        res.json({ available: false, message: 'WhatsApp service disabled on Vercel' });
+    }
 });
 
 router.post('/whatsapp/logout', async (req, res) => {
-    await whatsappService.logout();
-    // Re-initialize to allow new login
-    whatsappService.initialize();
-    res.json({ message: 'Logged out' });
+    if (whatsappService) {
+        await whatsappService.logout();
+        whatsappService.initialize();
+        res.json({ success: true, message: 'WhatsApp service restarted' });
+    } else {
+        res.json({ success: false, message: 'WhatsApp service not available on Vercel' });
+    }
 });
 
 router.post('/notifications/trigger', async (req, res) => {
     try {
         console.log('Manual notification trigger received.');
-        // await checkAndSendNotifications(true); // isManual = true
-        res.json({ success: false, message: 'Notification service not available on Vercel' });
+        if (checkAndSendNotifications) {
+            await checkAndSendNotifications(true);
+            res.json({ success: true, message: 'Notifications have been queued for sending!' });
+        } else {
+            res.json({ success: false, message: 'Notification service not available on Vercel' });
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
