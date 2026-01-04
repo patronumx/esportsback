@@ -87,8 +87,8 @@ app.use(errorHandler);
 
 const connectDB = require('./config/db');
 
-const { startScheduler } = require('./services/notificationScheduler');
-const whatsappService = require('./services/whatsappService');
+// const { startScheduler } = require('./services/notificationScheduler');
+// const whatsappService = require('./services/whatsappService');
 
 // Start server if run directly (Local Development)
 if (require.main === module) {
