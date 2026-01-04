@@ -77,6 +77,7 @@ app.use('/api/video-analysis', require('./routes/videoAnalysisRoutes'));
 app.use('/api/video-analysis', require('./routes/videoAnalysisRoutes'));
 app.use('/api/planning', require('./routes/planningRoutes'));
 app.use('/api/guidelines', require('./routes/guidelineRoutes'));
+app.use('/api/debug', require('./routes/debugRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Esports Management API is running');
