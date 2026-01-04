@@ -98,8 +98,8 @@ if (require.main === module) {
 
             // Start background services after server is up
             try {
-                startScheduler();
-                whatsappService.initialize();
+                // startScheduler();
+                // whatsappService.initialize();
             } catch (serviceError) {
                 console.error('Failed to start background services:', serviceError);
             }
@@ -109,5 +109,8 @@ if (require.main === module) {
         process.exit(1);
     });
 }
+
+// Connect to DB for Serverless (Vercel)
+connectDB();
 
 module.exports = app;
