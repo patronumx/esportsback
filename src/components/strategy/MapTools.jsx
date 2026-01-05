@@ -28,7 +28,6 @@ import { showToast } from '../../utils/toast';
 
 const COLORS = [
     '#ffffff', // White
-    '#000000', // Black
     '#f87171', // Red 400
     '#fb923c', // Orange 400
     '#facc15', // Yellow 400
@@ -38,7 +37,6 @@ const COLORS = [
     '#a78bfa', // Violet 400
     '#e879f9', // Fuchsia 400
     '#fb7185', // Rose 400
-    '#94a3b8', // Slate 400
     '#ef4444', // Red 500
     '#f97316', // Orange 500
     '#eab308', // Yellow 500
@@ -46,19 +44,7 @@ const COLORS = [
     '#06b6d4', // Cyan 500
     '#3b82f6', // Blue 500
     '#8b5cf6', // Violet 500
-    '#d946ef', // Fuchsia 500
-    '#f43f5e', // Rose 500
-    '#64748b', // Slate 500
-    '#b91c1c', // Red 700
-    '#c2410c', // Orange 700
-    '#a16207', // Yellow 700
-    '#15803d', // Green 700
-    '#0e7490', // Cyan 700
-    '#1d4ed8', // Blue 700
-    '#6d28d9', // Violet 700
-    '#a21caf', // Fuchsia 700
-    '#be123c', // Rose 700
-    '#171717', // Neutral 900
+    '#8b5cf6', // Duplicate Violet removed if needed, keeping 17-18 colors
 ];
 
 
