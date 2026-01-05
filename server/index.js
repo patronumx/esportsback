@@ -39,6 +39,12 @@ app.use(cors({
     credentials: true
 }));
 
+// Private Network Access (PNA) Support
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+    next();
+});
+
 // Security Middleware
 app.use(helmet());
 app.use(compression());
