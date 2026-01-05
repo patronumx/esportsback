@@ -24,9 +24,24 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware - PNA Support MUST be before CORS for preflight
+// Middleware - Robust PNA Support (Must be before CORS)
 app.use((req, res, next) => {
+    // Always set PNA header for safety
     res.setHeader('Access-Control-Allow-Private-Network', 'true');
+
+    // Explicitly handle PNA Preflight (OPTIONS with PNA header)
+    if (req.method === 'OPTIONS' && req.headers['access-control-request-private-network']) {
+        const origin = req.headers.origin;
+        // Basic whitelist check to match CORS logic
+        if (origin && (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('patronumesports.com'))) {
+            res.setHeader('Access-Control-Allow-Origin', origin);
+        }
+
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, access-control-request-private-network');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        return res.sendStatus(204);
+    }
     next();
 });
 
