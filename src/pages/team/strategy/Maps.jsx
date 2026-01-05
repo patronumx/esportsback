@@ -10,9 +10,9 @@ import axios from 'axios';
 
 // Import map assets
 import MapLogosToolbar from '../../../components/strategy/MapLogosToolbar';
-import ERANGEL from '../../../assets/maps/ERANGEL.png';
-import MIRAMAR from '../../../assets/maps/MIRAMAR.png';
-import RONDO from '../../../assets/maps/RONDO.png';
+import ERANGEL from '../../../assets/maps/ERANGEL.jpg';
+import MIRAMAR from '../../../assets/maps/MIRAMAR.jpg';
+import RONDO from '../../../assets/maps/RONDO.jpg';
 
 const MAP_IMAGES = {
     ERANGEL,

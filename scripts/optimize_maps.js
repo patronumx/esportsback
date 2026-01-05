@@ -15,26 +15,34 @@ const processMaps = async () => {
         const files = fs.readdirSync(MAPS_DIR);
 
         for (const file of files) {
-            if (file.match(/\.(png|jpg|jpeg)$/i)) {
+            // Only process PNGs
+            if (file.match(/\.png$/i)) {
                 const filePath = path.join(MAPS_DIR, file);
+                const rawName = path.parse(file).name; // e.g. "ERANGEL"
+                const newPath = path.join(MAPS_DIR, `${rawName}.jpg`);
+
                 console.log(`Processing ${file}...`);
 
                 const image = await Jimp.read(filePath);
 
-                // Resize only if larger than target
-                if (image.width > TARGET_SIZE || image.height > TARGET_SIZE) {
-                    console.log(`Resizing ${file} from ${image.width}x${image.height} to ${TARGET_SIZE}x${TARGET_SIZE}...`);
-                    image.resize({ w: TARGET_SIZE, h: TARGET_SIZE }); // exact resize to square as maps are usually square
-                } else {
-                    console.log(`${file} is already smaller or equal to target size.`);
+                // Resize if huge, otherwise just convert
+                // 3072px is a good balance for map details
+                if (image.width > 3072 || image.height > 3072) {
+                    console.log(`Resizing ${file} to 3072px...`);
+                    image.resize({ w: 3072, h: 3072 }); // Aspect ratio? Maps usually sq.
+                    // Use scaleToFit if not square? But user code assumes sq.
                 }
 
-                // Write back to same path (overwrite)
-                await image.write(filePath, { quality: QUALITY });
-                console.log(`Saved optimized ${file}`);
+                // Write as JPEG
+                await image.write(newPath, { quality: 75 });
+                console.log(`Saved optimized ${newPath}`);
+
+                // Delete original PNG to save space and avoid confusion
+                fs.unlinkSync(filePath);
+                console.log(`Deleted original ${file}`);
             }
         }
-        console.log('All maps processed.');
+        console.log('All maps processed and converted to JPEG.');
     } catch (error) {
         console.error('Error processing maps:', error);
     }

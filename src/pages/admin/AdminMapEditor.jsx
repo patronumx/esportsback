@@ -11,9 +11,9 @@ import MapLogosToolbar from '../../components/strategy/MapLogosToolbar';
 import MapTools from '../../components/strategy/MapTools';
 
 // Assets
-import ERANGEL from '../../assets/maps/ERANGEL.png';
-import MIRAMAR from '../../assets/maps/MIRAMAR.png';
-import RONDO from '../../assets/maps/RONDO.png';
+import ERANGEL from '../../assets/maps/ERANGEL.jpg';
+import MIRAMAR from '../../assets/maps/MIRAMAR.jpg';
+import RONDO from '../../assets/maps/RONDO.jpg';
 import { ZONE_RADII } from '../../utils/esportsConstants';
 
 const MAP_IMAGES = {

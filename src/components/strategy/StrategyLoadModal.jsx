@@ -3,9 +3,9 @@ import { X, Clock, Map as MapIcon } from 'lucide-react';
 import axios from 'axios';
 import { showToast } from '../../utils/toast';
 
-import ERANGEL from '../../assets/maps/ERANGEL.png';
-import MIRAMAR from '../../assets/maps/MIRAMAR.png';
-import RONDO from '../../assets/maps/RONDO.png';
+import ERANGEL from '../../assets/maps/ERANGEL.jpg';
+import MIRAMAR from '../../assets/maps/MIRAMAR.jpg';
+import RONDO from '../../assets/maps/RONDO.jpg';
 
 const MAP_IMAGES = {
     ERANGEL,

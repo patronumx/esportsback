@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Layers, Save, RefreshCw, ChevronRight, ChevronDown, Clock, ShieldAlert, FolderOpen, Map as MapIcon, Calendar, Trophy, ChevronLeft } from 'lucide-react';
 import LeafletMapCanvas from '../../../components/strategy/LeafletMapCanvas';
 import MapTools from '../../../components/strategy/MapTools';
-import erangelMap from '../../../assets/maps/ERANGEL.png';
-import miramarMap from '../../../assets/maps/MIRAMAR.png';
-import rondoMap from '../../../assets/maps/RONDO.png';
+import erangelMap from '../../../assets/maps/ERANGEL.jpg';
+import miramarMap from '../../../assets/maps/MIRAMAR.jpg';
+import rondoMap from '../../../assets/maps/RONDO.jpg';
 import { ZONE_RADII } from '../../../utils/esportsConstants';
 import axios from 'axios';
 

@@ -16,9 +16,9 @@ import StrategyLoadModal from '../../components/strategy/StrategyLoadModal';
 import StrategySaveModal from '../../components/strategy/StrategySaveModal';
 import { ZONE_RADII } from '../../utils/esportsConstants';
 import axios from 'axios';
-import ERANGEL from '../../assets/maps/ERANGEL.png';
-import MIRAMAR from '../../assets/maps/MIRAMAR.png';
-import RONDO from '../../assets/maps/RONDO.png';
+import ERANGEL from '../../assets/maps/ERANGEL.jpg';
+import MIRAMAR from '../../assets/maps/MIRAMAR.jpg';
+import RONDO from '../../assets/maps/RONDO.jpg';
 import { showToast } from '../../utils/toast';
 
 const MAP_IMAGES = {

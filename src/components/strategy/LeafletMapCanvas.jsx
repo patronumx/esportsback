@@ -8,6 +8,7 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw'; // Ensure L.Draw is attached to L
 import { EditControl } from 'react-leaflet-draw';
 import { ZONE_RADII_PIXELS } from '../../utils/esportsConstants';
+import { resolveLogoUrl } from '../../utils/logoAssets';
 
 // Fix for default marker icons in Leaflet with Webpack/Vite
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -1081,7 +1082,7 @@ const LeafletMapCanvas = ({
                     className: 'custom-logo-icon-v2',
                     // Explicit pixel size in style to override any CSS conflicts
                     html: `${styleInjection}<div style="width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                     <img src="${obj.logoSrc}" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); display: block;" />
+                                     <img src="${resolveLogoUrl(obj.logoSrc)}" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); display: block;" />
                                    </div>`,
                     iconSize: [size, size],
                     iconAnchor: [size / 2, size / 2],

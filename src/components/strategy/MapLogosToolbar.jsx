@@ -4,19 +4,10 @@ import { Folder, ChevronLeft, ChevronRight } from 'lucide-react';
 // Eagerly load URL strings only. 
 // This avoids the overhead of loading full modules but resolves paths at build time.
 // We keep the rendering logic optimized (only render active folder) to solve performance.
-const pmgcLogos = import.meta.glob('../../assets/teamlogo/PMGC 2025/**/*.png', { eager: true, import: 'default' });
-const pmwcLogos = import.meta.glob('../../assets/teamlogo/PMWC 2025/**/*.png', { eager: true, import: 'default' });
-const pmgoLogos = import.meta.glob('../../assets/teamlogo/PMGO 2025/**/*.png', { eager: true, import: 'default' });
+import { getAllLogos } from '../../utils/logoAssets';
 
-// New Categories
-const pmgc2024Logos = import.meta.glob('../../assets/teamlogo/PMGC 2024/**/*.png', { eager: true, import: 'default' });
-const pmslAmericaLogos = import.meta.glob('../../assets/teamlogo/PMSL AMERICA/**/*.png', { eager: true, import: 'default' });
-const pmslCsaLogos = import.meta.glob('../../assets/teamlogo/PMSL CSA/**/*.png', { eager: true, import: 'default' });
-const pmslEmeaLogos = import.meta.glob('../../assets/teamlogo/PMSL EMEA/**/*.png', { eager: true, import: 'default' });
-const pmslEuLogos = import.meta.glob('../../assets/teamlogo/PMSL EU/**/*.png', { eager: true, import: 'default' });
-const pmslMenaLogos = import.meta.glob('../../assets/teamlogo/PMSL MENA/**/*.png', { eager: true, import: 'default' });
-const pmslSeaLogos = import.meta.glob('../../assets/teamlogo/PMSL SEA/**/*.png', { eager: true, import: 'default' });
-const pmwc2024Logos = import.meta.glob('../../assets/teamlogo/PMWC 2024/**/*.png', { eager: true, import: 'default' });
+// Load Collections from centralized utility
+const logoCollections = getAllLogos();
 
 // Helper to process glob results into a nested structure (Recursive)
 const processLogos = (globResult, rootPathSegment) => {
@@ -32,7 +23,11 @@ const processLogos = (globResult, rootPathSegment) => {
     };
 
     Object.keys(globResult).forEach(path => {
-        // path example: ../../assets/teamlogo/PMGC 2025/Week 1/Group Red/Logo.png
+        // path example: ../assets/teamlogo/PMGC 2025/Week 1/Group Red/Logo.png (from utils)
+        // Note: verify path structure from utils vs local
+        // In utils: import.meta.glob('../assets/...')
+        // So keys start with ../assets
+
         const normalizedPath = path.replace(/\\/g, '/');
         // Split by the specific root segment tag to find relative path
         const splitTag = `/teamlogo/${rootPathSegment}/`;
@@ -54,7 +49,6 @@ const processLogos = (globResult, rootPathSegment) => {
         });
 
         // Add File
-        // globResult[path] is now the URL string directly because of { import: 'default' }
         currentLevel.push({
             type: 'file',
             name: filename.replace('.png', ''),
@@ -65,14 +59,11 @@ const processLogos = (globResult, rootPathSegment) => {
     // Helper to sort items (folders first, then files; numeric sort)
     const sortItems = (items) => {
         items.sort((a, b) => {
-            // Folders before files
             if (a.type !== b.type) {
                 return a.type === 'folder' ? -1 : 1;
             }
-            // Numeric sort for names (e.g. "Week 1", "Week 2", "Week 10")
             return a.name.localeCompare(b.name, undefined, { numeric: true });
         });
-        // Recurse for subfolders
         items.forEach(item => {
             if (item.type === 'folder') {
                 sortItems(item.items);
@@ -86,17 +77,17 @@ const processLogos = (globResult, rootPathSegment) => {
 
 
 const LOGO_CATEGORIES = {
-    "PMGC 2025": processLogos(pmgcLogos, "PMGC 2025"),
-    "PMWC 2025": processLogos(pmwcLogos, "PMWC 2025"),
-    "PMGO 2025": processLogos(pmgoLogos, "PMGO 2025"),
-    "PMGC 2024": processLogos(pmgc2024Logos, "PMGC 2024"),
-    "PMWC 2024": processLogos(pmwc2024Logos, "PMWC 2024"),
-    "PMSL AMERICA": processLogos(pmslAmericaLogos, "PMSL AMERICA"),
-    "PMSL CSA": processLogos(pmslCsaLogos, "PMSL CSA"),
-    "PMSL EMEA": processLogos(pmslEmeaLogos, "PMSL EMEA"),
-    "PMSL EU": processLogos(pmslEuLogos, "PMSL EU"),
-    "PMSL MENA": processLogos(pmslMenaLogos, "PMSL MENA"),
-    "PMSL SEA": processLogos(pmslSeaLogos, "PMSL SEA")
+    "PMGC 2025": processLogos(logoCollections['PMGC 2025'], "PMGC 2025"),
+    "PMWC 2025": processLogos(logoCollections['PMWC 2025'], "PMWC 2025"),
+    "PMGO 2025": processLogos(logoCollections['PMGO 2025'], "PMGO 2025"),
+    "PMGC 2024": processLogos(logoCollections['PMGC 2024'], "PMGC 2024"),
+    "PMWC 2024": processLogos(logoCollections['PMWC 2024'], "PMWC 2024"),
+    "PMSL AMERICA": processLogos(logoCollections['PMSL AMERICA'], "PMSL AMERICA"),
+    "PMSL CSA": processLogos(logoCollections['PMSL CSA'], "PMSL CSA"),
+    "PMSL EMEA": processLogos(logoCollections['PMSL EMEA'], "PMSL EMEA"),
+    "PMSL EU": processLogos(logoCollections['PMSL EU'], "PMSL EU"),
+    "PMSL MENA": processLogos(logoCollections['PMSL MENA'], "PMSL MENA"),
+    "PMSL SEA": processLogos(logoCollections['PMSL SEA'], "PMSL SEA")
 };
 
 // Simple Component to render logo
