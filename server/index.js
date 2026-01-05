@@ -26,11 +26,14 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware - Robust PNA Support (Must be before CORS)
 app.use((req, res, next) => {
-    // Always set PNA header for safety
+    // Debug Log
+    console.log(`[PNA Debug] ${req.method} ${req.url} | Origin: ${req.headers.origin} | PNA-Req: ${req.headers['access-control-request-private-network']}`);
+
+    // Always set PNA header for safety on ALL responses
     res.setHeader('Access-Control-Allow-Private-Network', 'true');
 
     // Explicitly handle PNA Preflight (OPTIONS with PNA header)
-    if (req.method === 'OPTIONS' && req.headers['access-control-request-private-network']) {
+    if (req.method === 'OPTIONS' && (req.headers['access-control-request-private-network'] || req.headers.origin)) {
         const origin = req.headers.origin;
         // Basic whitelist check to match CORS logic
         if (origin && (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('patronumesports.com'))) {
@@ -40,7 +43,11 @@ app.use((req, res, next) => {
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, access-control-request-private-network');
         res.setHeader('Access-Control-Allow-Credentials', 'true');
-        return res.sendStatus(204);
+
+        // Return 204 only if it looks like a CORS preflight
+        if (req.headers['access-control-request-method']) {
+            return res.sendStatus(204);
+        }
     }
     next();
 });
