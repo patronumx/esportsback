@@ -259,7 +259,7 @@ const MapLogosToolbar = ({ onSelectLogo, activeLogo, className = '' }) => {
                     <ChevronLeft className="w-3 h-3 text-purple-500" /> BACK
                 </button>
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                         {items.length === 0 && <div className="text-gray-500 text-[10px] text-center p-4">Empty Folder</div>}
                         {items.map((item, idx) => {
                             if (item.type === 'folder') {
