@@ -311,7 +311,7 @@ const TeamMapViewer = () => {
     return (
         <div className="flex flex-col h-[calc(100vh-64px)] bg-black overflow-hidden relative">
             {/* Left Toolbar - Logos (Team Side Only) */}
-            <div className="absolute top-24 left-4 z-[500] pointer-events-auto flex flex-col gap-4 justify-start w-[260px]">
+            <div className="absolute top-24 left-4 z-[500] pointer-events-auto flex flex-col gap-4 justify-start w-[260px] max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar">
                 {/* Drawing Tools */}
                 <div className="flex-shrink-0 w-full">
                     <MapTools
