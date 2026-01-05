@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "start": "cd server && npm start",
-    "build": "echo 'No build for root'",
+    "build": "node build-check.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "heroku-postbuild": "cd server && npm install"
