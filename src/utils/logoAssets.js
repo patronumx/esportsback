@@ -30,10 +30,6 @@ Object.values(logoCollections).forEach(collection => {
         // normalized: "assets/teamlogo/pmgc 2025/logo.png" (lowercase for fuzzy match)
         const normalized = path.replace(/^\.\.\//, '').toLowerCase();
         normalizedMap[normalized] = url;
-
-        // Also map the URL itself to itself (in case storage is already correct)
-        // normalizedMap[url.toLowerCase()] = url; 
-        // Warning: URLs in prod are hashed (/assets/Logo-123.png), so this might not match "src" style storage.
     });
 });
 
@@ -48,36 +44,52 @@ export const resolveLogoUrl = (savedSrc) => {
     // If it's a data URL or external URL, return as is
     if (savedSrc.startsWith('data:') || savedSrc.startsWith('http')) return savedSrc;
 
-    // Normalize the saved path
-    // Remove /src/, ../, and lowercase
-    let normalized = savedSrc
-        .replace(/^\/?src\//, '') // Remove leading /src/ or src/
-        .replace(/^\.\.\//, '')   // Remove leading ../
-        .replace(/^\//, '')       // Remove leading /
-        .toLowerCase();
+    let processedPath = savedSrc;
 
-    // Attempt match
-    // Check if the normalized path is in our map (which contains "assets/teamlogo/...")
-    // If saving stored "assets/teamlogo/..." we are good.
-
-    // We try to match the tail if exact match fails
-    // e.g. saved: "some/weird/path/assets/teamlogo/file.png" -> we want "assets/teamlogo/file.png"
-
-    if (normalizedMap[normalized]) {
-        return normalizedMap[normalized];
+    // 1. Decode URI components (handle %20 vs space)
+    try {
+        processedPath = decodeURIComponent(processedPath);
+    } catch (e) {
+        // Ignore error
     }
 
-    // Try to find by filename if path fails (Risky if duplicate filenames, but better than broken image)
-    // Actually, `assets/teamlogo` structure is pretty unique.
+    // 2. Normalize: Extract 'assets/teamlogo/...' part
+    // This handles various prefixes like /src/, ../, or absolute paths
+    const assetsIndex = processedPath.toLowerCase().indexOf('assets/teamlogo');
 
-    // Fuzzy search: verify if 'assets/teamlogo' exists in string
-    if (normalized.includes('assets/teamlogo')) {
-        const parts = normalized.split('assets/teamlogo');
-        const tail = 'assets/teamlogo' + parts[1]; // Reconstruct "assets/teamlogo/..."
-        if (normalizedMap[tail]) return normalizedMap[tail];
+    let normalizedTarget = '';
+
+    if (assetsIndex !== -1) {
+        // "assets/teamlogo/PMGC 2025/..."
+        normalizedTarget = processedPath.substring(assetsIndex).toLowerCase();
+    } else {
+        // Fallback cleanup if 'assets/teamlogo' not found explicitly
+        normalizedTarget = processedPath
+            .replace(/^\/?src\//, '')
+            .replace(/^\.\.\//, '')
+            .replace(/^\//, '')
+            .toLowerCase();
     }
 
-    return savedSrc; // Fallback
+    // 3. Exact Match Attempt
+    if (normalizedMap[normalizedTarget]) {
+        return normalizedMap[normalizedTarget];
+    }
+
+    // 4. Filename Backup Match (Risky but helpful if folders moved)
+    // Extract filename: "Logo.png" from "path/to/Logo.png"
+    const parts = normalizedTarget.split('/');
+    const filename = parts.length > 0 ? parts[parts.length - 1] : null;
+
+    if (filename) {
+        // Search values in normalizedMap for a key that ends with this filename
+        const possibleKey = Object.keys(normalizedMap).find(key => key.endsWith(`/${filename}`));
+        if (possibleKey) {
+            return normalizedMap[possibleKey];
+        }
+    }
+
+    return savedSrc; // Fallback to original if aggressive recovery fails
 };
 
 export const getAllLogos = () => logoCollections;
