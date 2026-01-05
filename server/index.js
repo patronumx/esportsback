@@ -43,12 +43,18 @@ app.use(cors({
 app.use(helmet());
 app.use(compression());
 
+// Trust Proxy for Vercel
+app.set('trust proxy', 1);
+
 // Rate Limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 200, // Increased for admin polling
     standardHeaders: true,
     legacyHeaders: false,
+    validate: {
+        xForwardedForHeader: false,
+    },
 });
 app.use('/api/', limiter);
 
