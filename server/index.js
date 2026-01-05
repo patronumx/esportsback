@@ -28,7 +28,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
-        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('patronumesports.com')) {
             return callback(null, true);
         }
         const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
