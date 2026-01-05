@@ -311,8 +311,7 @@ const TeamMapViewer = () => {
     return (
         <div className="flex flex-col h-[calc(100vh-64px)] bg-black overflow-hidden relative">
             {/* Left Toolbar - Logos (Team Side Only) */}
-            {/* Left Toolbar - Tools + Logos */}
-            <div className="absolute top-24 left-4 z-[500] pointer-events-auto max-h-[calc(100vh-120px)] flex flex-col gap-4 justify-start overflow-y-auto pr-2 pb-24 scrollbar-none w-[260px]">
+            <div className="absolute top-24 left-4 z-[500] pointer-events-auto flex flex-col gap-4 justify-start w-[260px]">
                 {/* Drawing Tools */}
                 <div className="flex-shrink-0 w-full">
                     <MapTools
@@ -339,8 +338,10 @@ const TeamMapViewer = () => {
                         hideSaveLoad={false}
                     />
                 </div>
+            </div>
 
-                {/* Logos / Layers */}
+            {/* Right Toolbar - Logos */}
+            <div className="absolute top-24 right-4 z-[500] pointer-events-auto max-h-[calc(100vh-120px)] flex flex-col gap-4 justify-start overflow-y-auto pl-2 pb-24 scrollbar-none w-[200px]">
                 <div className="h-fit w-full">
                     <MapLogosToolbar
                         onSelectLogo={handleLogoSelect}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Folder, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Folder, ChevronLeft, ChevronRight, Upload, Plus, Trash2 } from 'lucide-react';
 
 // Eagerly load URL strings only. 
 // This avoids the overhead of loading full modules but resolves paths at build time.
@@ -128,11 +128,34 @@ const MapLogosToolbar = ({ onSelectLogo, activeLogo, className = '' }) => {
     const [folderStack, setFolderStack] = useState([]); // Stack of folder objects for deep navigation
     const [isCollapsed, setIsCollapsed] = useState(false);
 
+    const [customLogos, setCustomLogos] = useState([]);
+    const fileInputRef = useRef(null);
+
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const result = event.target.result;
+            const newLogo = {
+                type: 'file',
+                name: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+                src: result,
+                isCustom: true
+            };
+            setCustomLogos(prev => [newLogo, ...prev]);
+            // Auto Select
+            if (onSelectLogo) onSelectLogo(result);
+        };
+        reader.readAsDataURL(file);
+    };
+
     if (isCollapsed) {
         return (
             <button
                 onClick={() => setIsCollapsed(false)}
-                className="bg-zinc-900/95 backdrop-blur-md border border-white/10 p-4 rounded-xl text-white hover:bg-zinc-800 transition-all shadow-xl group border-l-4 border-l-purple-500 animate-in slide-in-from-right duration-300"
+                className="bg-zinc-900/95 backdrop-blur-md border border-white/10 p-4 rounded-xl text-white hover:bg-zinc-800 transition-all shadow-xl group border-l-4 border-l-purple-500 animate-in slide-in-from-right duration-300 pointer-events-auto"
                 title="Show Teams"
             >
                 <ChevronLeft className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
@@ -161,6 +184,50 @@ const MapLogosToolbar = ({ onSelectLogo, activeLogo, className = '' }) => {
     // Render Logic
     const renderMainList = () => (
         <div className="flex flex-col gap-2 p-2 h-full overflow-y-auto custom-scrollbar">
+            {/* Upload Section */}
+            <div className="mb-2 space-y-2">
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                />
+                <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full py-3 rounded-lg border border-dashed border-white/20 bg-white/5 hover:bg-white/10 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-white transition-all group"
+                >
+                    <Upload size={16} className="group-hover:scale-110 transition-transform text-purple-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Upload Custom</span>
+                </button>
+
+                {/* Custom Logos Grid */}
+                {customLogos.length > 0 && (
+                    <div className="grid grid-cols-2 gap-2">
+                        {customLogos.map((item, idx) => (
+                            <div key={`custom-${idx}`} className="relative group/custom">
+                                <LogoItem
+                                    item={item}
+                                    onSelect={onSelectLogo}
+                                    activeLogo={activeLogo}
+                                />
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setCustomLogos(prev => prev.filter((_, i) => i !== idx));
+                                    }}
+                                    className="absolute -top-1 -right-1 bg-red-500 text-white p-0.5 rounded-full opacity-0 group-hover/custom:opacity-100 transition-opacity"
+                                >
+                                    <Trash2 size={10} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="h-px bg-white/10 my-1" />
+
             {Object.keys(LOGO_CATEGORIES).map((cat) => (
                 <button
                     key={cat}
@@ -230,7 +297,7 @@ const MapLogosToolbar = ({ onSelectLogo, activeLogo, className = '' }) => {
     if (folderStack.length > 0) headerTitle = folderStack[folderStack.length - 1].name;
 
     return (
-        <div className={`w-[80px] bg-[#1E1E1E]/95 backdrop-blur-md border border-white/10 rounded-xl flex flex-col shadow-2xl h-full min-h-0 overflow-hidden animate-in slide-in-from-right duration-300 ring-1 ring-white/5 relative ${className}`}>
+        <div className={`w-full bg-[#1E1E1E]/95 backdrop-blur-md border border-white/10 rounded-xl flex flex-col shadow-2xl h-full min-h-0 overflow-hidden animate-in slide-in-from-right duration-300 ring-1 ring-white/5 relative ${className}`}>
             <div
                 onClick={() => setIsCollapsed(true)}
                 className="p-3 border-b border-white/5 text-center shrink-0 bg-white/5 cursor-pointer hover:bg-white/10 transition-colors group"
