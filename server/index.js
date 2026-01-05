@@ -24,6 +24,15 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Basic Security
+app.use(helmet());
+
+// ULTRA-DEBUG: Log every single request hitting the server
+app.use((req, res, next) => {
+    console.log(`[SERVER_HIT] ${req.method} ${req.url} from Origin: ${req.headers.origin}`);
+    next();
+});
+
 // Middleware - Robust PNA Support (Must be before CORS)
 app.use((req, res, next) => {
     // Debug Log
