@@ -1,21 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Folder, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Dynamic Import of all PNG files
-// Not eager anymore - returns functions that return promises
-const pmgcLogos = import.meta.glob('../../assets/teamlogo/PMGC 2025/**/*.png');
-const pmwcLogos = import.meta.glob('../../assets/teamlogo/PMWC 2025/**/*.png');
-const pmgoLogos = import.meta.glob('../../assets/teamlogo/PMGO 2025/**/*.png');
+// Eagerly load URL strings only. 
+// This avoids the overhead of loading full modules but resolves paths at build time.
+// We keep the rendering logic optimized (only render active folder) to solve performance.
+const pmgcLogos = import.meta.glob('../../assets/teamlogo/PMGC 2025/**/*.png', { eager: true, import: 'default' });
+const pmwcLogos = import.meta.glob('../../assets/teamlogo/PMWC 2025/**/*.png', { eager: true, import: 'default' });
+const pmgoLogos = import.meta.glob('../../assets/teamlogo/PMGO 2025/**/*.png', { eager: true, import: 'default' });
 
 // New Categories
-const pmgc2024Logos = import.meta.glob('../../assets/teamlogo/PMGC 2024/**/*.png');
-const pmslAmericaLogos = import.meta.glob('../../assets/teamlogo/PMSL AMERICA/**/*.png');
-const pmslCsaLogos = import.meta.glob('../../assets/teamlogo/PMSL CSA/**/*.png');
-const pmslEmeaLogos = import.meta.glob('../../assets/teamlogo/PMSL EMEA/**/*.png');
-const pmslEuLogos = import.meta.glob('../../assets/teamlogo/PMSL EU/**/*.png');
-const pmslMenaLogos = import.meta.glob('../../assets/teamlogo/PMSL MENA/**/*.png');
-const pmslSeaLogos = import.meta.glob('../../assets/teamlogo/PMSL SEA/**/*.png');
-const pmwc2024Logos = import.meta.glob('../../assets/teamlogo/PMWC 2024/**/*.png');
+const pmgc2024Logos = import.meta.glob('../../assets/teamlogo/PMGC 2024/**/*.png', { eager: true, import: 'default' });
+const pmslAmericaLogos = import.meta.glob('../../assets/teamlogo/PMSL AMERICA/**/*.png', { eager: true, import: 'default' });
+const pmslCsaLogos = import.meta.glob('../../assets/teamlogo/PMSL CSA/**/*.png', { eager: true, import: 'default' });
+const pmslEmeaLogos = import.meta.glob('../../assets/teamlogo/PMSL EMEA/**/*.png', { eager: true, import: 'default' });
+const pmslEuLogos = import.meta.glob('../../assets/teamlogo/PMSL EU/**/*.png', { eager: true, import: 'default' });
+const pmslMenaLogos = import.meta.glob('../../assets/teamlogo/PMSL MENA/**/*.png', { eager: true, import: 'default' });
+const pmslSeaLogos = import.meta.glob('../../assets/teamlogo/PMSL SEA/**/*.png', { eager: true, import: 'default' });
+const pmwc2024Logos = import.meta.glob('../../assets/teamlogo/PMWC 2024/**/*.png', { eager: true, import: 'default' });
 
 // Helper to process glob results into a nested structure (Recursive)
 const processLogos = (globResult, rootPathSegment) => {
@@ -53,10 +54,11 @@ const processLogos = (globResult, rootPathSegment) => {
         });
 
         // Add File
+        // globResult[path] is now the URL string directly because of { import: 'default' }
         currentLevel.push({
             type: 'file',
             name: filename.replace('.png', ''),
-            importFn: globResult[path] // Store the import function instead of src
+            src: globResult[path]
         });
     });
 
@@ -97,33 +99,17 @@ const LOGO_CATEGORIES = {
     "PMSL SEA": processLogos(pmslSeaLogos, "PMSL SEA")
 };
 
-// Component to lazy load logo image
-const LogoItem = ({ item, onSelect, activeLogo, activeCategory }) => {
-    const [src, setSrc] = useState(null);
-
-    useEffect(() => {
-        let mounted = true;
-        if (item.importFn) {
-            item.importFn().then(mod => {
-                if (mounted) setSrc(mod.default);
-            });
-        }
-        return () => { mounted = false; };
-    }, [item]);
-
-    if (!src) return (
-        <div className="w-full aspect-square rounded-xl bg-white/5 animate-pulse" />
-    );
-
+// Simple Component to render logo
+const LogoItem = ({ item, onSelect, activeLogo }) => {
     return (
         <div
             draggable="true"
             onDragStart={(e) => {
-                e.dataTransfer.setData('logoSrc', src);
+                e.dataTransfer.setData('logoSrc', item.src);
                 e.dataTransfer.effectAllowed = 'copy';
             }}
-            onClick={() => onSelect && onSelect(src)}
-            className={`w-full aspect-square rounded-xl p-2 transition-all flex items-center justify-center border cursor-grab active:cursor-grabbing group relative overflow-hidden ${activeLogo === src
+            onClick={() => onSelect && onSelect(item.src)}
+            className={`w-full aspect-square rounded-xl p-2 transition-all flex items-center justify-center border cursor-grab active:cursor-grabbing group relative overflow-hidden ${activeLogo === item.src
                 ? 'bg-purple-500/20 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)] scale-105'
                 : 'bg-white/5 border-transparent hover:bg-white/10 hover:border-white/20 active:scale-95'
                 }`}
@@ -131,8 +117,9 @@ const LogoItem = ({ item, onSelect, activeLogo, activeCategory }) => {
         >
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-purple-500/5 group-hover:to-purple-500/10 transition-all duration-500" />
             <img
-                src={src}
+                src={item.src}
                 alt={item.name}
+                loading="lazy"
                 className="w-full h-full object-contain drop-shadow-md pointer-events-none group-hover:scale-110 transition-transform duration-300"
             />
         </div>
@@ -224,7 +211,7 @@ const MapLogosToolbar = ({ onSelectLogo, activeLogo, className = '' }) => {
                                     </button>
                                 );
                             } else {
-                                // It's a file (Logo) - Lazy Loaded
+                                // It's a file (Logo)
                                 return (
                                     <LogoItem
                                         key={`file-${idx}`}
@@ -267,5 +254,3 @@ const MapLogosToolbar = ({ onSelectLogo, activeLogo, className = '' }) => {
         </div>
     );
 };
-
-export default MapLogosToolbar;
