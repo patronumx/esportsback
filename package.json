@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "echo 'No build for root'",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "heroku-postbuild": "cd server && npm install"
   },
   "dependencies": {
     "@lottiefiles/react-lottie-player": "^3.6.0",
