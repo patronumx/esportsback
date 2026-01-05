@@ -41,6 +41,12 @@ const TeamMapViewer = () => {
     const [color, setColor] = React.useState('#ffffff');
     const [selectedId, setSelectedId] = React.useState(null);
     const [isEventDropdownOpen, setIsEventDropdownOpen] = React.useState(false);
+    const [loadingId, setLoadingId] = React.useState(null);
+
+    // Reset loadingId when global loading finishes
+    useEffect(() => {
+        if (!loading) setLoadingId(null);
+    }, [loading]);
 
     // History Expansion State
     const [expandedEvents, setExpandedEvents] = React.useState({});
@@ -135,6 +141,8 @@ const TeamMapViewer = () => {
     };
 
     const handleSelectMap = (id) => {
+        if (loading) return; // Prevent multiple clicks
+        setLoadingId(id);
         dispatch(loadMapFromHistory(id));
         setLoadedStrategyTitle(null); // Clear local strategy title when loading Admin Map
     };
@@ -451,9 +459,10 @@ const TeamMapViewer = () => {
                                                                                                     <button
                                                                                                         key={item._id}
                                                                                                         onClick={() => handleSelectMap(item._id)}
-                                                                                                        className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/10 hover:bg-blue-600/20 hover:border-blue-500/50 transition-all group text-left relative overflow-hidden"
+                                                                                                        disabled={loading}
+                                                                                                        className={`flex items-center justify-between p-2 rounded-lg border transition-all group text-left relative overflow-hidden ${loadingId === item._id ? 'bg-blue-500/20 border-blue-500/50' : 'bg-black/40 border-white/10 hover:bg-blue-600/20 hover:border-blue-500/50'}`}
                                                                                                     >
-                                                                                                        <div className="flex flex-col z-10">
+                                                                                                        <div className={`flex flex-col z-10 ${loadingId === item._id ? 'opacity-50' : ''}`}>
                                                                                                             <span className="text-white font-bold text-[11px] group-hover:text-blue-200 transition-colors drop-shadow-sm">
                                                                                                                 {item.matchNumber ? (item.matchNumber.startsWith('Match') ? item.matchNumber : `Match ${item.matchNumber}`) : item.mapName}
                                                                                                             </span>
@@ -463,7 +472,11 @@ const TeamMapViewer = () => {
                                                                                                                 <span className="text-[10px] text-gray-400 font-medium">{new Date(item.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                                                                             </div>
                                                                                                         </div>
-                                                                                                        <ChevronRight size={14} className="text-white/40 group-hover:text-blue-400 transform group-hover:translate-x-0.5 transition-all" />
+                                                                                                        {loadingId === item._id ? (
+                                                                                                            <RotateCw size={14} className="text-blue-400 animate-spin" />
+                                                                                                        ) : (
+                                                                                                            <ChevronRight size={14} className="text-white/40 group-hover:text-blue-400 transform group-hover:translate-x-0.5 transition-all" />
+                                                                                                        )}
                                                                                                     </button>
                                                                                                 ))}
                                                                                             </div>
