@@ -316,8 +316,6 @@ const LeafletMapCanvas = ({
 
     // State for custom drag (ID of zone being dragged + offset from center)
     const [dragState, setDragState] = useState(null);
-    // State for custom rectangle drawing (click-click)
-    const [drawingState, setDrawingState] = useState(null); // { start: LatLng, current: LatLng } for Rectangle
     const [currentZoom, setCurrentZoom] = useState(1);
 
     // State for Text Prompt Modal
@@ -1287,8 +1285,6 @@ const LeafletMapCanvas = ({
                     activeLogo={activeLogo}
                     onAddObject={onAddObject}
                     color={color}
-                    drawingState={drawingState}
-                    setDrawingState={setDrawingState}
                     onSelect={onSelect}
                     toKonva={toKonva}
                     onUpdateObject={onUpdateObject}
@@ -1559,36 +1555,7 @@ const LeafletMapCanvas = ({
                     bounds={[[0, 0], [MAP_DIMENSIONS, MAP_DIMENSIONS]]} // Use Dimensions, NOT image size
                 />
 
-                {/* Preview for Drawing */}
-                {
-                    drawingState && (
-                        <React.Fragment>
-                            {drawingState.tool === 'rectangle' && (
-                                <Rectangle
-                                    bounds={[drawingState.start, drawingState.current]}
-                                    pathOptions={{ color: color || 'white', dashArray: '5, 5', fill: false }}
-                                />
-                            )}
-                            {drawingState.tool === 'circle' && (
-                                <Circle
-                                    center={drawingState.start}
-                                    radius={(() => {
-                                        const startPos = toKonva(drawingState.start[0], drawingState.start[1]);
-                                        const endPos = toKonva(drawingState.current[0], drawingState.current[1]);
-                                        return Math.sqrt(Math.pow(endPos.x - startPos.x, 2) + Math.pow(endPos.y - startPos.y, 2));
-                                    })()}
-                                    pathOptions={{ color: color || 'white', dashArray: '5, 5', fill: false }}
-                                />
-                            )}
-                            {drawingState.tool === 'brush' && drawingState.points && drawingState.points.length > 1 && (
-                                <Polyline
-                                    positions={drawingState.points.map(p => [p.x, p.y])}
-                                    pathOptions={{ color: color || 'white', weight: 4, opacity: 0.7 }}
-                                />
-                            )}
-                        </React.Fragment>
-                    )
-                }
+
                 <FeatureGroup>
                     {/* We keep empty FeatureGroup or minimal EditControl if we want editing later,
                         but for now DrawHandler handles creation. */ }
@@ -1623,10 +1590,10 @@ const LeafletMapCanvas = ({
 const EventsHandler = ({
     dragState, setDragState, handleZoneDrag,
     tool, activeLogo, onAddObject, color,
-    drawingState, setDrawingState,
     onSelect, toKonva, onOpenTextModal, onUpdateObject
 }) => {
     const map = useMap();
+    const [drawingState, setDrawingState] = useState(null);
 
     useMapEvents({
         click: (e) => {
@@ -1810,11 +1777,32 @@ const EventsHandler = ({
 
     return (
         <React.Fragment>
-            {drawingState && drawingState.tool === 'brush' && (
-                <Polyline
-                    positions={drawingState.points.map(p => [p.x, p.y])}
-                    pathOptions={{ color: color || 'white', weight: 3, opacity: 0.8 }}
-                />
+            {drawingState && (
+                <React.Fragment>
+                    {drawingState.tool === 'rectangle' && (
+                        <Rectangle
+                            bounds={[drawingState.start, drawingState.current]}
+                            pathOptions={{ color: color || 'white', dashArray: '5, 5', fill: false }}
+                        />
+                    )}
+                    {drawingState.tool === 'circle' && (
+                        <Circle
+                            center={drawingState.start}
+                            radius={(() => {
+                                const startPos = toKonva(drawingState.start[0], drawingState.start[1]);
+                                const endPos = toKonva(drawingState.current[0], drawingState.current[1]);
+                                return Math.sqrt(Math.pow(endPos.x - startPos.x, 2) + Math.pow(endPos.y - startPos.y, 2));
+                            })()}
+                            pathOptions={{ color: color || 'white', dashArray: '5, 5', fill: false }}
+                        />
+                    )}
+                    {drawingState.tool === 'brush' && drawingState.points && drawingState.points.length > 1 && (
+                        <Polyline
+                            positions={drawingState.points.map(p => [p.x, p.y])}
+                            pathOptions={{ color: color || 'white', weight: 4, opacity: 0.7 }}
+                        />
+                    )}
+                </React.Fragment>
             )}
         </React.Fragment>
     );
