@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "cd server && npm start",
     "build": "echo 'No build for root'",
     "lint": "eslint .",
     "preview": "vite preview",
