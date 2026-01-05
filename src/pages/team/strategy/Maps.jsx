@@ -175,6 +175,11 @@ const Maps = () => {
 
     const [currentLogo, setCurrentLogo] = useState(null);
 
+    const handleLogoSelect = (logoSrc) => {
+        setCurrentLogo(logoSrc);
+        setTool('logo');
+    };
+
     // --- Download Logic ---
     const handleDownload = async () => {
         const element = document.querySelector('.leaflet-container');
