@@ -44,7 +44,7 @@ app.use(helmet());
 app.use(compression());
 
 // Trust Proxy for Vercel
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -54,6 +54,7 @@ const limiter = rateLimit({
     legacyHeaders: false,
     validate: {
         xForwardedForHeader: false,
+        trustProxy: false,
     },
 });
 app.use('/api/', limiter);

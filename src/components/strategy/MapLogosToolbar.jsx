@@ -254,3 +254,5 @@ const MapLogosToolbar = ({ onSelectLogo, activeLogo, className = '' }) => {
         </div>
     );
 };
+
+export default MapLogosToolbar;
