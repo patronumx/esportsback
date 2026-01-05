@@ -52,7 +52,8 @@ const processLogos = (globResult, rootPathSegment) => {
         currentLevel.push({
             type: 'file',
             name: filename.replace('.png', ''),
-            src: globResult[path]
+            src: globResult[path],
+            originalPath: path // Store the stable original path (e.g. ../assets/teamlogo/...)
         });
     });
 
@@ -97,6 +98,10 @@ const LogoItem = ({ item, onSelect, activeLogo }) => {
             draggable="true"
             onDragStart={(e) => {
                 e.dataTransfer.setData('logoSrc', item.src);
+                // ALSO set original stable path if available
+                if (item.originalPath) {
+                    e.dataTransfer.setData('originalPath', item.originalPath);
+                }
                 e.dataTransfer.effectAllowed = 'copy';
             }}
             onClick={() => onSelect && onSelect(item.src)}

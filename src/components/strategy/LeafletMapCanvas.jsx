@@ -742,6 +742,7 @@ const LeafletMapCanvas = ({
             const handleDrop = (e) => {
                 e.preventDefault();
                 const logoSrc = e.dataTransfer.getData('logoSrc');
+                const originalPath = e.dataTransfer.getData('originalPath');
                 const toolType = e.dataTransfer.getData('toolType');
                 const toolColor = e.dataTransfer.getData('toolColor');
 
@@ -762,7 +763,7 @@ const LeafletMapCanvas = ({
                         tool: 'logo',
                         x: pos.x,
                         y: pos.y,
-                        logoSrc: logoSrc,
+                        logoSrc: originalPath || logoSrc, // Prefer stable path for DB storage
                         width: 60,
                         height: 60
                     });

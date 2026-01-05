@@ -10,7 +10,7 @@ const MapDrop = require('../models/MapDrop');
 router.get('/latest', async (req, res) => {
     try {
         // Find the most recently updated map drop
-        const mapDrop = await MapDrop.findOne().sort({ updatedAt: -1 });
+        const mapDrop = await MapDrop.findOne().sort({ updatedAt: -1 }).lean();
 
         if (!mapDrop) {
             // Return default if nothing exists
@@ -29,7 +29,8 @@ router.get('/latest', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const maps = await MapDrop.find({}, 'title stage day matchNumber mapName updatedAt visibleToTeams')
-            .sort({ updatedAt: -1 });
+            .sort({ updatedAt: -1 })
+            .lean();
         res.json(maps);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -78,7 +79,7 @@ router.post('/', async (req, res) => {
 // Get specific map drop by ID (for loading history)
 router.get('/:id', async (req, res) => {
     try {
-        const map = await MapDrop.findById(req.params.id);
+        const map = await MapDrop.findById(req.params.id).lean();
         if (!map) return res.status(404).json({ message: 'Map not found' });
         res.json(map);
     } catch (err) {

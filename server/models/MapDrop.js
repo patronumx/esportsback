@@ -32,6 +32,7 @@ const mapDropSchema = new mongoose.Schema({
         ref: 'User' // Admin who updated it
     }
 }, { timestamps: true });
+mapDropSchema.index({ updatedAt: -1 });
 
 // Ensure only one global map state exists per mapName (or just one single latest document?)
 // For now, let's assume we just want the "latest" one generally, or latest per mapName.
