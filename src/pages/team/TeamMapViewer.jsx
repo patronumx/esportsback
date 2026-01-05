@@ -95,7 +95,7 @@ const TeamMapViewer = () => {
 
 
     useEffect(() => {
-        dispatch(fetchMapDrop());
+        dispatch(clearMap());
         dispatch(fetchMapHistory());
 
         // Simple polling every 30 seconds for LATEST
