@@ -38,6 +38,7 @@ const COLORS = [
     '#a78bfa', // Violet 400
     '#e879f9', // Fuchsia 400
     '#fb7185', // Rose 400
+    '#94a3b8', // Slate 400
     '#ef4444', // Red 500
     '#f97316', // Orange 500
     '#eab308', // Yellow 500
@@ -45,6 +46,19 @@ const COLORS = [
     '#06b6d4', // Cyan 500
     '#3b82f6', // Blue 500
     '#8b5cf6', // Violet 500
+    '#d946ef', // Fuchsia 500
+    '#f43f5e', // Rose 500
+    '#64748b', // Slate 500
+    '#b91c1c', // Red 700
+    '#c2410c', // Orange 700
+    '#a16207', // Yellow 700
+    '#15803d', // Green 700
+    '#0e7490', // Cyan 700
+    '#1d4ed8', // Blue 700
+    '#6d28d9', // Violet 700
+    '#a21caf', // Fuchsia 700
+    '#be123c', // Rose 700
+    '#171717', // Neutral 900
 ];
 
 
@@ -190,15 +204,17 @@ const MapTools = ({
                     {/* Color Palette Section */}
                     <div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Color Palette</div>
-                        <div className="grid grid-cols-6 gap-2">
-                            {displayColors.map((c) => (
-                                <button
-                                    key={c}
-                                    onClick={() => setColor && setColor(c)}
-                                    className={`w-6 h-6 rounded-full transition-transform ${color === c ? 'scale-110 ring-2 ring-white ring-offset-2 ring-offset-[#09090b]' : 'hover:scale-110'}`}
-                                    style={{ backgroundColor: c }}
-                                />
-                            ))}
+                        <div className="max-h-[140px] overflow-y-auto custom-scrollbar p-1">
+                            <div className="grid grid-cols-6 gap-2">
+                                {displayColors.map((c) => (
+                                    <button
+                                        key={c}
+                                        onClick={() => setColor && setColor(c)}
+                                        className={`w-6 h-6 rounded-full transition-transform ${color === c ? 'scale-110 ring-2 ring-white ring-offset-2 ring-offset-[#09090b]' : 'hover:scale-110'}`}
+                                        style={{ backgroundColor: c }}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </div>
 
