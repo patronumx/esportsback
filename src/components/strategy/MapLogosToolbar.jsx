@@ -1,23 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Folder, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Dynamic Import of all PNG files
-// Vite specific glob import
-// Vite specific glob import
-const pmgcLogos = import.meta.glob('../../assets/teamlogo/PMGC 2025/**/*.png', { eager: true });
-const pmwcLogos = import.meta.glob('../../assets/teamlogo/PMWC 2025/**/*.png', { eager: true });
-const pmgoLogos = import.meta.glob('../../assets/teamlogo/PMGO 2025/**/*.png', { eager: true });
+// Not eager anymore - returns functions that return promises
+const pmgcLogos = import.meta.glob('../../assets/teamlogo/PMGC 2025/**/*.png');
+const pmwcLogos = import.meta.glob('../../assets/teamlogo/PMWC 2025/**/*.png');
+const pmgoLogos = import.meta.glob('../../assets/teamlogo/PMGO 2025/**/*.png');
 
 // New Categories
-const pmgc2024Logos = import.meta.glob('../../assets/teamlogo/PMGC 2024/**/*.png', { eager: true });
-const pmslAmericaLogos = import.meta.glob('../../assets/teamlogo/PMSL AMERICA/**/*.png', { eager: true });
-const pmslCsaLogos = import.meta.glob('../../assets/teamlogo/PMSL CSA/**/*.png', { eager: true });
-const pmslEmeaLogos = import.meta.glob('../../assets/teamlogo/PMSL EMEA/**/*.png', { eager: true });
-console.log('DEBUG: PMSL EMEA Logos Keys:', Object.keys(pmslEmeaLogos));
-const pmslEuLogos = import.meta.glob('../../assets/teamlogo/PMSL EU/**/*.png', { eager: true });
-const pmslMenaLogos = import.meta.glob('../../assets/teamlogo/PMSL MENA/**/*.png', { eager: true });
-const pmslSeaLogos = import.meta.glob('../../assets/teamlogo/PMSL SEA/**/*.png', { eager: true });
-const pmwc2024Logos = import.meta.glob('../../assets/teamlogo/PMWC 2024/**/*.png', { eager: true });
+const pmgc2024Logos = import.meta.glob('../../assets/teamlogo/PMGC 2024/**/*.png');
+const pmslAmericaLogos = import.meta.glob('../../assets/teamlogo/PMSL AMERICA/**/*.png');
+const pmslCsaLogos = import.meta.glob('../../assets/teamlogo/PMSL CSA/**/*.png');
+const pmslEmeaLogos = import.meta.glob('../../assets/teamlogo/PMSL EMEA/**/*.png');
+const pmslEuLogos = import.meta.glob('../../assets/teamlogo/PMSL EU/**/*.png');
+const pmslMenaLogos = import.meta.glob('../../assets/teamlogo/PMSL MENA/**/*.png');
+const pmslSeaLogos = import.meta.glob('../../assets/teamlogo/PMSL SEA/**/*.png');
+const pmwc2024Logos = import.meta.glob('../../assets/teamlogo/PMWC 2024/**/*.png');
 
 // Helper to process glob results into a nested structure (Recursive)
 const processLogos = (globResult, rootPathSegment) => {
@@ -58,7 +56,7 @@ const processLogos = (globResult, rootPathSegment) => {
         currentLevel.push({
             type: 'file',
             name: filename.replace('.png', ''),
-            src: globResult[path].default
+            importFn: globResult[path] // Store the import function instead of src
         });
     });
 
@@ -99,12 +97,53 @@ const LOGO_CATEGORIES = {
     "PMSL SEA": processLogos(pmslSeaLogos, "PMSL SEA")
 };
 
+// Component to lazy load logo image
+const LogoItem = ({ item, onSelect, activeLogo, activeCategory }) => {
+    const [src, setSrc] = useState(null);
+
+    useEffect(() => {
+        let mounted = true;
+        if (item.importFn) {
+            item.importFn().then(mod => {
+                if (mounted) setSrc(mod.default);
+            });
+        }
+        return () => { mounted = false; };
+    }, [item]);
+
+    if (!src) return (
+        <div className="w-full aspect-square rounded-xl bg-white/5 animate-pulse" />
+    );
+
+    return (
+        <div
+            draggable="true"
+            onDragStart={(e) => {
+                e.dataTransfer.setData('logoSrc', src);
+                e.dataTransfer.effectAllowed = 'copy';
+            }}
+            onClick={() => onSelect && onSelect(src)}
+            className={`w-full aspect-square rounded-xl p-2 transition-all flex items-center justify-center border cursor-grab active:cursor-grabbing group relative overflow-hidden ${activeLogo === src
+                ? 'bg-purple-500/20 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)] scale-105'
+                : 'bg-white/5 border-transparent hover:bg-white/10 hover:border-white/20 active:scale-95'
+                }`}
+            title={item.name}
+        >
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-purple-500/5 group-hover:to-purple-500/10 transition-all duration-500" />
+            <img
+                src={src}
+                alt={item.name}
+                className="w-full h-full object-contain drop-shadow-md pointer-events-none group-hover:scale-110 transition-transform duration-300"
+            />
+        </div>
+    );
+};
+
 const MapLogosToolbar = ({ onSelectLogo, activeLogo, className = '' }) => {
     // State
     const [currentCategory, setCurrentCategory] = useState(null);
     const [folderStack, setFolderStack] = useState([]); // Stack of folder objects for deep navigation
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [headerCollapsed, setHeaderCollapsed] = useState(false);
 
     if (isCollapsed) {
         return (
@@ -185,29 +224,14 @@ const MapLogosToolbar = ({ onSelectLogo, activeLogo, className = '' }) => {
                                     </button>
                                 );
                             } else {
-                                // It's a file (Logo)
+                                // It's a file (Logo) - Lazy Loaded
                                 return (
-                                    <div
+                                    <LogoItem
                                         key={`file-${idx}`}
-                                        draggable="true"
-                                        onDragStart={(e) => {
-                                            e.dataTransfer.setData('logoSrc', item.src);
-                                            e.dataTransfer.effectAllowed = 'copy';
-                                        }}
-                                        onClick={() => onSelectLogo && onSelectLogo(item.src)}
-                                        className={`w-full aspect-square rounded-xl p-2 transition-all flex items-center justify-center border cursor-grab active:cursor-grabbing group relative overflow-hidden ${activeLogo === item.src
-                                            ? 'bg-purple-500/20 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)] scale-105'
-                                            : 'bg-white/5 border-transparent hover:bg-white/10 hover:border-white/20 active:scale-95'
-                                            }`}
-                                        title={item.name}
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-purple-500/5 group-hover:to-purple-500/10 transition-all duration-500" />
-                                        <img
-                                            src={item.src}
-                                            alt={item.name}
-                                            className="w-full h-full object-contain drop-shadow-md pointer-events-none group-hover:scale-110 transition-transform duration-300"
-                                        />
-                                    </div>
+                                        item={item}
+                                        onSelect={onSelectLogo}
+                                        activeLogo={activeLogo}
+                                    />
                                 );
                             }
                         })}
