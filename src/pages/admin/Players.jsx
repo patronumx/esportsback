@@ -142,7 +142,7 @@ const AdminPlayers = () => {
                     <button onClick={() => setShowAddModal(true)} className="px-4 py-2 bg-blue-600 text-white rounded-xl flex items-center hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20 font-bold">
                         <Plus className="mr-2 w-4 h-4" /> Add Player
                     </button>
-                    <a href="http://localhost:5000/api/admin/export/players" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl flex items-center hover:bg-gray-700 transition-colors border border-white/5">
+                    <a href="https://petite-towns-follow.loca.lt/api/admin/export/players" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl flex items-center hover:bg-gray-700 transition-colors border border-white/5">
                         <Download className="mr-2 w-4 h-4" /> Export CSV
                     </a>
                 </div>

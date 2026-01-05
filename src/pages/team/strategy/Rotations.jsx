@@ -133,7 +133,7 @@ const Rotations = () => {
                     // 1. Try to fetch existing Event Strategy first
                     const targetMap = mapData.mapName ? mapData.mapName.toLowerCase() : 'erangel';
                     const targetTeamId = `event_${mapData._id}`;
-                    const eventStrategyRes = await axios.get(`http://localhost:5000/api/rotations/${targetMap}/${targetTeamId}?t=${Date.now()}`);
+                    const eventStrategyRes = await axios.get(`https://petite-towns-follow.loca.lt/api/rotations/${targetMap}/${targetTeamId}?t=${Date.now()}`);
 
                     let newObjs = [];
 
@@ -218,7 +218,7 @@ const Rotations = () => {
             setLoading(true);
             try {
                 // Determine API URL - this will return Global Default if team specific doesn't exist
-                const res = await axios.get(`http://localhost:5000/api/rotations/${currentMapId}/${teamId}`);
+                const res = await axios.get(`https://petite-towns-follow.loca.lt/api/rotations/${currentMapId}/${teamId}`);
                 if (res.data && res.data.objects) {
                     setObjects(res.data.objects);
                 } else {
@@ -254,7 +254,7 @@ const Rotations = () => {
 
             console.log('Frontend: Saving objects to backend:', JSON.stringify(objects, null, 2));
 
-            await axios.post('http://localhost:5000/api/strategies', payload, config);
+            await axios.post('https://petite-towns-follow.loca.lt/api/strategies', payload, config);
             showToast.success('Strategy saved successfully!');
             setIsSaveModalOpen(false);
         } catch (error) {

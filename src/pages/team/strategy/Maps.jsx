@@ -116,7 +116,7 @@ const Maps = () => {
                 headers: { Authorization: `Bearer ${token}` }
             };
 
-            await axios.post('http://localhost:5000/api/strategies', payload, config);
+            await axios.post('https://petite-towns-follow.loca.lt/api/strategies', payload, config);
             showToast.success('Strategy saved successfully!');
         } catch (error) {
             console.error(error);

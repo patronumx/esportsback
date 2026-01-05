@@ -81,7 +81,7 @@ const AdminTeams = () => {
                     <p className="text-gray-400 text-sm">Manage your esports teams, rosters, and credentials.</p>
                 </div>
                 <div className="flex gap-3">
-                    <a href="http://localhost:5000/api/admin/export/teams" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl flex items-center hover:bg-gray-700 transition-colors border border-white/5">
+                    <a href="https://petite-towns-follow.loca.lt/api/admin/export/teams" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl flex items-center hover:bg-gray-700 transition-colors border border-white/5">
                         <Download className="mr-2 w-4 h-4" /> Export CSV
                     </a>
                     <button

@@ -77,7 +77,7 @@ const Planning = () => {
 
     const fetchGuidelines = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/guidelines/match-updates');
+            const res = await fetch('https://petite-towns-follow.loca.lt/api/guidelines/match-updates');
             if (res.ok) {
                 const data = await res.json();
                 setGuidelines(data.content || '');
@@ -88,7 +88,7 @@ const Planning = () => {
     const fetchPlanList = async () => {
         if (!user?.token) return;
         try {
-            const res = await fetch('http://localhost:5000/api/planning', {
+            const res = await fetch('https://petite-towns-follow.loca.lt/api/planning', {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             });
             if (res.ok) setPlans(await res.json());
@@ -109,7 +109,7 @@ const Planning = () => {
         }
 
         try {
-            const res = await fetch(`http://localhost:5000/api/planning/${id}`, {
+            const res = await fetch(`https://petite-towns-follow.loca.lt/api/planning/${id}`, {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             });
             if (res.ok) {
@@ -164,8 +164,8 @@ const Planning = () => {
             const payload = { tournamentName, dates, matches: formattedMatches };
             const isNew = currentPlanId === 'new';
             const url = isNew
-                ? 'http://localhost:5000/api/planning'
-                : `http://localhost:5000/api/planning/${currentPlanId}`;
+                ? 'https://petite-towns-follow.loca.lt/api/planning'
+                : `https://petite-towns-follow.loca.lt/api/planning/${currentPlanId}`;
 
             const res = await fetch(url, {
                 method: isNew ? 'POST' : 'PUT',
@@ -192,7 +192,7 @@ const Planning = () => {
     const deletePlan = async (idToDelete) => {
         if (!confirm('Delete this strategy?')) return;
         try {
-            const res = await fetch(`http://localhost:5000/api/planning/${idToDelete}`, {
+            const res = await fetch(`https://petite-towns-follow.loca.lt/api/planning/${idToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${user.token}` }
             });

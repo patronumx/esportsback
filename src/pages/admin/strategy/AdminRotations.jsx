@@ -55,7 +55,7 @@ const AdminRotations = () => {
     const fetchRotations = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`http://localhost:5000/api/rotations/${currentMapId}/${selectedTeamId}`);
+            const res = await axios.get(`https://petite-towns-follow.loca.lt/api/rotations/${currentMapId}/${selectedTeamId}`);
             if (res.data && res.data.objects) {
                 setObjects(res.data.objects);
                 // Also update history to base
@@ -105,7 +105,7 @@ const AdminRotations = () => {
 
             console.log(`Admin: Saving ${context} to backend:`, JSON.stringify(objects, null, 2));
 
-            await axios.post('http://localhost:5000/api/rotations/save', {
+            await axios.post('https://petite-towns-follow.loca.lt/api/rotations/save', {
                 teamId: saveTeamId,
                 mapId: currentMapId,
                 objects: objects
@@ -234,7 +234,7 @@ const AdminRotations = () => {
                 try {
                     // 1. Try to fetch existing Event Strategy first
                     const targetTeamId = `event_${mapData._id}`;
-                    const eventStrategyRes = await axios.get(`http://localhost:5000/api/rotations/${mapData.mapName ? mapData.mapName.toLowerCase() : 'erangel'}/${targetTeamId}?t=${Date.now()}`);
+                    const eventStrategyRes = await axios.get(`https://petite-towns-follow.loca.lt/api/rotations/${mapData.mapName ? mapData.mapName.toLowerCase() : 'erangel'}/${targetTeamId}?t=${Date.now()}`);
 
                     let newObjs = [];
                     // If Strategy exists AND matches event, use it. Else use Raw Drop Spots.
