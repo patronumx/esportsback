@@ -24,6 +24,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Middleware - PNA Support MUST be before CORS for preflight
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+    next();
+});
+
 // Middleware - CORS First!
 app.use(cors({
     origin: function (origin, callback) {
@@ -39,11 +45,7 @@ app.use(cors({
     credentials: true
 }));
 
-// Private Network Access (PNA) Support
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Private-Network', 'true');
-    next();
-});
+
 
 // Security Middleware
 app.use(helmet());
