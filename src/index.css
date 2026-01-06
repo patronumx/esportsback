@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Onest", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Brand variables */
+:root {
+  --brand-bg-color: #000000;
+  /* pure black for hyperspeed bg */
+  --brand-card-color: rgba(15, 23, 42, 0.95);
+  /* enhanced card with more opacity */
+}
+
+/* Make sure the app fills the viewport */
+html,
+body,
+#root {
+  height: 100%;
+  font-size: 90%;
+  /* Scale down the entire app */
+}
+
+/* Global font + base background */
+body {
+  margin: 0;
+  color: #e5e7eb;
+  /* slate-200 */
+  font-family: 'Onest', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  background: #000000;
+  /* Pure black background for hyperspeed effect */
+}
+
+/* Use these with Tailwind-style class names you already have in JSX */
+
+.bg-brand-bg {
+  background: transparent;
+  /* Let the hyperspeed background show through */
+}
+
+.bg-brand-card {
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%),
+    radial-gradient(circle at top left, rgba(255, 50, 47, 0.08), transparent 60%),
+    radial-gradient(circle at bottom right, rgba(253, 253, 240, 0.05), transparent 60%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(253, 253, 240, 0.1);
+  box-shadow:
+    0 8px 32px 0 rgba(0, 0, 0, 0.37),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Enhanced styles for content over hyperspeed background */
+.hyperspeed-content {
+  position: relative;
+  z-index: 10;
+}
+
+/* Add subtle glow effects for gaming aesthetic */
+.gaming-glow-cyan {
+  text-shadow: 0 0 20px rgba(3, 179, 195, 0.4);
+}
+
+.gaming-glow-purple {
+  text-shadow: 0 0 20px rgba(103, 80, 162, 0.4);
+}
+
+.gaming-glow-pink {
+  text-shadow: 0 0 20px rgba(216, 86, 191, 0.4);
+}
+
+/* Enhanced card styles for gaming theme */
+.gaming-card-glow {
+  box-shadow:
+    0 8px 32px 0 rgba(0, 0, 0, 0.37),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+    0 0 20px rgba(3, 179, 195, 0.15);
+}
+
+/* Enhanced text readability utilities */
+.text-enhanced {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+  font-weight: 800;
+}
+
+.text-readable {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  font-weight: 600;
+}
+
+.text-subtle-shadow {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+/* Enhanced card overlay for better text contrast */
+.card-overlay-dark {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.card-overlay-darker {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Enhanced border utilities */
+.border-enhanced {
+  border-width: 1.5px;
+}
+
+/* (Removed smooth scroll on html to keep scrolling snappy) */
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #a855f7 0%, #9333ea 100%);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #c084fc 0%, #a855f7 100%);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #a855f7 rgba(0, 0, 0, 0.2);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Animations */
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  animation: gradient 6s ease infinite;
+}
+
+.bg-300\% {
+  background-size: 300% 300%;
+}
