@@ -6,7 +6,7 @@ import StrategyLoadModal from '../../../components/strategy/StrategyLoadModal';
 import StrategySaveModal from '../../../components/strategy/StrategySaveModal';
 import { showToast } from '../../../utils/toast';
 import { ZONE_RADII } from '../../../utils/esportsConstants';
-import axios from 'axios';
+import api from '../../../api/client';
 
 // Import map assets
 import MapLogosToolbar from '../../../components/strategy/MapLogosToolbar';
@@ -111,12 +111,12 @@ const Maps = () => {
                 thumbnailUrl: null
             };
 
-            const token = localStorage.getItem('token');
-            const config = {
-                headers: { Authorization: `Bearer ${token}` }
-            };
+            // const token = localStorage.getItem('token');
+            // const config = {
+            //     headers: { Authorization: `Bearer ${token}` }
+            // };
 
-            await axios.post('https://petite-towns-follow.loca.lt/api/strategies', payload, config);
+            await api.post('/strategies', payload);
             showToast.success('Strategy saved successfully!');
         } catch (error) {
             console.error(error);
