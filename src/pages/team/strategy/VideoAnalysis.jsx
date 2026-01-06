@@ -80,6 +80,15 @@ const VideoAnalysis = () => {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            // 100MB Limit Check
+            const MAX_SIZE = 100 * 1024 * 1024; // 100MB
+            if (file.size > MAX_SIZE) {
+                showToast.error("Video can't be saved as it is above 100MB");
+                // Reset input so they can try again
+                e.target.value = '';
+                return;
+            }
+
             const url = URL.createObjectURL(file);
             setVideoSrc(url);
             setVideoFile(file); // Store file for potential upload
@@ -817,7 +826,7 @@ const VideoAnalysis = () => {
                 {/* Right Area - Canvas & Video */}
                 <div
                     ref={containerRef}
-                    className="lg:col-span-3 bg-[#0a0a0a] rounded-2xl overflow-hidden shadow-2xl border border-white/5 relative flex flex-col"
+                    className="lg:col-span-3 bg-[#0a0a0a] rounded-2xl overflow-hidden shadow-2xl border border-white/5 relative flex flex-col min-h-[50vh] lg:min-h-0"
                 >
                     {videoSrc ? (
                         <>
