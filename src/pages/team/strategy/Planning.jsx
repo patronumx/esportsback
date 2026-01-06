@@ -7,6 +7,7 @@ import {
 import { format } from 'date-fns';
 import { showToast } from '../../../utils/toast';
 import { useAuth } from '../../../context/AuthContext';
+import api from '../../../api/client';
 
 // Updated Default Data Structure
 const DEFAULT_MATCHES = [1, 2, 3, 4, 5, 6].map(id => ({
@@ -77,10 +78,9 @@ const Planning = () => {
 
     const fetchGuidelines = async () => {
         try {
-            const res = await fetch('https://petite-towns-follow.loca.lt/api/guidelines/match-updates');
-            if (res.ok) {
-                const data = await res.json();
-                setGuidelines(data.content || '');
+            const res = await api.get('/guidelines/match-updates');
+            if (res.data) {
+                setGuidelines(res.data.content || '');
             }
         } catch (err) { console.error(err); }
     };
@@ -88,10 +88,8 @@ const Planning = () => {
     const fetchPlanList = async () => {
         if (!user?.token) return;
         try {
-            const res = await fetch('https://petite-towns-follow.loca.lt/api/planning', {
-                headers: { 'Authorization': `Bearer ${user.token}` }
-            });
-            if (res.ok) setPlans(await res.json());
+            const res = await api.get('/planning');
+            setPlans(res.data);
         } catch (err) { console.error(err); }
     };
 
@@ -109,11 +107,9 @@ const Planning = () => {
         }
 
         try {
-            const res = await fetch(`https://petite-towns-follow.loca.lt/api/planning/${id}`, {
-                headers: { 'Authorization': `Bearer ${user.token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
+            const res = await api.get(`/planning/${id}`);
+            if (res.data) {
+                const data = res.data;
                 setCurrentPlanId(data._id);
                 setTournamentName(data.tournamentName);
                 setTournamentName(data.tournamentName);
@@ -164,26 +160,25 @@ const Planning = () => {
             const payload = { tournamentName, dates, matches: formattedMatches };
             const isNew = currentPlanId === 'new';
             const url = isNew
-                ? 'https://petite-towns-follow.loca.lt/api/planning'
-                : `https://petite-towns-follow.loca.lt/api/planning/${currentPlanId}`;
+                ? '/planning'
+                : `/planning/${currentPlanId}`;
 
-            const res = await fetch(url, {
-                method: isNew ? 'POST' : 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
-                body: JSON.stringify(payload)
-            });
+            let res;
+            if (isNew) {
+                res = await api.post(url, payload);
+            } else {
+                res = await api.put(url, payload);
+            }
 
-            if (res.ok) {
-                const saved = await res.json();
+            if (res.data) {
+                const saved = res.data;
                 showToast.success('Strategy Saved!');
                 setCurrentPlanId(saved._id);
                 fetchPlanList();
-            } else {
-                const errData = await res.json();
-                showToast.error(errData.message || 'Save Failed');
             }
         } catch (err) {
-            showToast.error('Network Error');
+            const message = err.response?.data?.message || 'Save Failed';
+            showToast.error(message);
         } finally {
             setIsSaving(false);
         }
@@ -192,16 +187,11 @@ const Planning = () => {
     const deletePlan = async (idToDelete) => {
         if (!confirm('Delete this strategy?')) return;
         try {
-            const res = await fetch(`https://petite-towns-follow.loca.lt/api/planning/${idToDelete}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${user.token}` }
-            });
-            if (res.ok) {
-                showToast.success('Strategy Deleted');
-                const remaining = plans.filter(p => p._id !== idToDelete);
-                setPlans(remaining);
-                if (currentPlanId === idToDelete) loadPlanDetails('new');
-            }
+            await api.delete(`/planning/${idToDelete}`);
+            showToast.success('Strategy Deleted');
+            const remaining = plans.filter(p => p._id !== idToDelete);
+            setPlans(remaining);
+            if (currentPlanId === idToDelete) loadPlanDetails('new');
         } catch (err) { showToast.error("Failed to delete"); }
     };
 

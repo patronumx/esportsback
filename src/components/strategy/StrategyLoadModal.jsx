@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, Clock, Map as MapIcon } from 'lucide-react';
-import axios from 'axios';
+import api from '../../api/client';
 import { showToast } from '../../utils/toast';
 
 import ERANGEL from '../../assets/maps/ERANGEL.jpg';
@@ -26,20 +26,13 @@ const StrategyLoadModal = ({ isOpen, onClose, onLoadStrategy, type = 'general' }
     const fetchStrategies = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const { data } = await axios.get('https://petite-towns-follow.loca.lt/api/strategies', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const { data } = await api.get('/strategies');
             // Client-side filtering for simplicity, or could pass query param
             const filtered = type ? data.filter(s => s.type === type) : data;
             setStrategies(filtered);
         } catch (error) {
             console.error(error);
-            if (error.response && error.response.status === 401) {
-                showToast.error('Session expired. Please login again.');
-            } else {
-                showToast.error('Failed to load strategies');
-            }
+            showToast.error('Failed to load strategies');
         } finally {
             setLoading(false);
         }

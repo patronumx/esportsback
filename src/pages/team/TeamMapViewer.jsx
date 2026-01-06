@@ -15,7 +15,7 @@ import MapTools from '../../components/strategy/MapTools';
 import StrategyLoadModal from '../../components/strategy/StrategyLoadModal';
 import StrategySaveModal from '../../components/strategy/StrategySaveModal';
 import { ZONE_RADII } from '../../utils/esportsConstants';
-import axios from 'axios';
+import api from '../../api/client';
 import ERANGEL from '../../assets/maps/ERANGEL.jpg';
 import MIRAMAR from '../../assets/maps/MIRAMAR.jpg';
 import RONDO from '../../assets/maps/RONDO.jpg';
@@ -126,12 +126,12 @@ const TeamMapViewer = () => {
                 thumbnailUrl: null
             };
 
-            const token = localStorage.getItem('token');
-            const config = {
-                headers: { Authorization: `Bearer ${token} ` }
-            };
+            // const token = localStorage.getItem('token');
+            // const config = {
+            //     headers: { Authorization: `Bearer ${token} ` }
+            // };
 
-            await axios.post('https://petite-towns-follow.loca.lt/api/strategies', payload, config);
+            await api.post('/strategies', payload);
             showToast.success('Strategy saved successfully!');
             setIsSaveModalOpen(false);
         } catch (error) {

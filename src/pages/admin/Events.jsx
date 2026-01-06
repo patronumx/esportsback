@@ -95,7 +95,7 @@ const AdminEvents = () => {
                             <Grid className="w-4 h-4" />
                         </button>
                     </div>
-                    <a href="https://petite-towns-follow.loca.lt/api/admin/export/events" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl flex items-center hover:bg-gray-700 transition-colors border border-white/5">
+                    <a href={`${import.meta.env.VITE_API_URL || 'https://esportsback-5f0e5dfa1bec.herokuapp.com/api'}/admin/export/events`} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl flex items-center hover:bg-gray-700 transition-colors border border-white/5">
                         <Download className="mr-2 w-4 h-4" /> CSV
                     </a>
                     <button onClick={() => setShowModal(true)} className="px-6 py-2 bg-blue-600 text-white font-bold rounded-xl flex items-center hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20">

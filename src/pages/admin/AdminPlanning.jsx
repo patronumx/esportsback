@@ -3,6 +3,7 @@ import { Save, FileText, CheckCircle, AlertCircle, Layout, Calendar, Clock, Arro
 import { showToast } from '../../utils/toast';
 import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
+import api from '../../api/client';
 
 const AdminPlanning = () => {
     const { user } = useAuth();
@@ -37,6 +38,10 @@ const AdminPlanning = () => {
         'Sanhok': 'bg-emerald-500/10 border-emerald-500/20'
     };
 
+
+
+    // ... (keep state declarations)
+
     useEffect(() => {
         if (activeTab === 'guidelines') fetchGuidelines();
         if (activeTab === 'strategies') fetchTeamPlans();
@@ -46,11 +51,8 @@ const AdminPlanning = () => {
     const fetchGuidelines = async () => {
         setIsLoadingGuidelines(true);
         try {
-            const res = await fetch(`https://petite-towns-follow.loca.lt/api/guidelines/match-updates`);
-            if (res.ok) {
-                const data = await res.json();
-                setGuidelineContent(data.content || '');
-            }
+            const { data } = await api.get('/guidelines/match-updates');
+            setGuidelineContent(data.content || '');
         } catch (err) {
             console.error(err);
         } finally {
@@ -61,13 +63,8 @@ const AdminPlanning = () => {
     const handleSaveGuidelines = async () => {
         setIsSaving(true);
         try {
-            const res = await fetch('https://petite-towns-follow.loca.lt/api/guidelines', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
-                body: JSON.stringify({ type: 'match-updates', content: guidelineContent })
-            });
-            if (res.ok) showToast.success("Guidelines Updated");
-            else showToast.error("Failed to save");
+            await api.post('/guidelines', { type: 'match-updates', content: guidelineContent });
+            showToast.success("Guidelines Updated");
         } catch (err) {
             showToast.error("Network Error");
         } finally {
@@ -79,13 +76,8 @@ const AdminPlanning = () => {
     const fetchTeamPlans = async () => {
         setIsLoadingPlans(true);
         try {
-            const res = await fetch(`https://petite-towns-follow.loca.lt/api/planning/admin/all`, {
-                headers: { 'Authorization': `Bearer ${user.token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setTeamPlans(data);
-            }
+            const { data } = await api.get('/planning/admin/all');
+            setTeamPlans(data);
         } catch (err) {
             console.error(err);
             showToast.error("Failed to load plans");
@@ -98,17 +90,10 @@ const AdminPlanning = () => {
         if (!activePlan) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`https://petite-towns-follow.loca.lt/api/planning/admin/feedback/${activePlan._id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ adminFeedback: activePlan.adminFeedback })
+            await api.put(`/planning/admin/feedback/${activePlan._id}`, {
+                adminFeedback: activePlan.adminFeedback
             });
 
-            if (!res.ok) throw new Error('Failed to save feedback');
             showToast.success('Feedback saved successfully');
 
             // Update local list
