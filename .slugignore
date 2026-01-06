@@ -1,0 +1,16 @@
+src
+public
+dist
+*.mp4
+*.mov
+*.avi
+*.png
+*.jpg
+*.jpeg
+*.svg
+node_modules
+!server/node_modules
+!package.json
+!package-lock.json
+!Procfile
+!server

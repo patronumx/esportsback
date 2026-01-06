@@ -1,0 +1,160 @@
+import { useState } from 'react';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { LayoutDashboard, Calendar, Image, Activity, Users, MessageSquare, Bell, LogOut, BarChart, Download, Menu, X, Search, Briefcase, Link2, Map, MonitorPlay, Route, MapPin, ClipboardList, Crosshair, ChevronLeft, ChevronRight } from 'lucide-react';
+import Hyperspeed from '../components/Hyperspeed';
+import { showToast } from '../utils/toast';
+
+
+const TeamLayout = () => {
+    const { logout, user } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleLogout = () => {
+        logout();
+        showToast.success('Logged out successfully');
+        navigate('/team/login');
+    };
+
+    const isActive = (path) => location.pathname.startsWith(path);
+
+    const NavItem = ({ to, icon: Icon, label }) => (
+        <Link
+            to={to}
+            onClick={() => {
+                // Only close on mobile (md is 768px)
+                if (window.innerWidth < 768) {
+                    setIsSidebarOpen(false);
+                }
+            }}
+            className={`
+                group flex items-center ${!isSidebarOpen ? 'justify-center px-2' : 'px-3 md:px-4 lg:px-6'} py-2 md:py-3 ${isSidebarOpen ? 'rounded-xl overflow-hidden' : 'rounded-none'} transition-all duration-300 relative ${!isSidebarOpen ? 'mb-3' : 'mb-0.5 md:mb-1 lg:mb-2'}
+                ${isActive(to)
+                    ? (!isSidebarOpen ? 'text-purple-400' : 'bg-purple-500/10 text-white border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.3)]')
+                    : `text-gray-500 md:hover:bg-white/5 md:hover:text-white ${isSidebarOpen ? 'md:hover:translate-x-1' : ''} md:hover:shadow-[0_0_10px_rgba(255,255,255,0.1)]`
+                }
+            `}
+        >
+            <Icon className={`
+                ${isSidebarOpen ? 'mr-2 md:mr-3 lg:mr-4' : 'mx-auto'} w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 transition-transform duration-300 md:group-hover:scale-110 flex-shrink-0
+                ${isActive(to) ? 'text-purple-400' : 'text-gray-500 md:group-hover:text-purple-400'}
+            `} />
+            <span className={`relative z-10 font-bold text-xs md:text-sm lg:text-base transition-opacity duration-200 whitespace-nowrap ${!isSidebarOpen && 'hidden'}`}>{label}</span>
+            {isActive(to) && isSidebarOpen && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 md:h-6 lg:h-8 bg-purple-500 rounded-r-full shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+            )}
+        </Link>
+    );
+
+    return (
+        <div className="flex h-screen bg-black text-white font-sans overflow-hidden relative selection:bg-emerald-500/30">
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <Hyperspeed />
+            </div>
+
+            {/* Mobile Header */}
+            <div className="md:hidden absolute top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-black/50 backdrop-blur-md border-b border-white/5">
+                <div className="font-black text-purple-500 tracking-tight">DASHBOARD</div>
+                <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-gray-400 hover:text-white">
+                    <Menu className="w-6 h-6" />
+                </button>
+            </div>
+
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/80 z-40 md:hidden backdrop-blur-sm"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
+            {/* Sidebar */}
+            <aside className={`
+                fixed inset-y-0 left-0 z-50 bg-[#050505] border-r border-white/5 flex flex-col transition-all duration-300 md:translate-x-0 md:static
+                ${isSidebarOpen ? 'translate-x-0 w-60 md:w-64 lg:w-80' : '-translate-x-full md:translate-x-0 md:w-16 lg:w-20'}
+            `}>
+                {/* Collapse Toggle (Desktop) */}
+                {/* Collapse Toggle (Desktop) - Arrow on border */}
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 bg-zinc-900 border border-white/10 text-gray-400 hover:text-white rounded-full p-1 shadow-lg z-50 items-center justify-center transition-colors hover:bg-zinc-800"
+                    title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+                >
+                    {isSidebarOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                </button>
+                <div className="p-3 md:p-4 lg:p-6 pb-2 relative">
+                    <button
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="md:hidden absolute top-4 right-4 p-2 text-gray-500 hover:text-white"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+
+                    <div className="mb-2 md:mb-4 lg:mb-6 mt-8 md:mt-0">
+                        {/* Team Card */}
+                        <div className={`bg-[#111] rounded-2xl p-3 md:p-4 border border-white/5 flex flex-col items-center text-center group hover:border-white/10 transition-colors hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] ${!isSidebarOpen ? 'border-none p-0 bg-transparent' : 'lg:p-6'}`}>
+                            <div className={`w-8 h-8 md:w-10 md:h-10 ${isSidebarOpen ? 'lg:w-20 lg:h-20 rounded-full overflow-hidden' : 'lg:w-10 lg:h-10 rounded-none'} bg-transparent flex items-center justify-center text-xl md:text-2xl font-black text-black mb-2 md:mb-3 flex-shrink-0 transition-all duration-300`}>
+                                {user?.teamLogo ? (
+                                    <img src={user.teamLogo} alt={user.teamName} className={`w-full h-full ${isSidebarOpen ? 'object-cover' : 'object-contain'}`} />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-yellow-400 rounded-full text-black">
+                                        {user?.teamName ? user.teamName.charAt(0) : 'T'}
+                                    </div>
+                                )}
+                            </div>
+                            <div className={`font-bold text-white text-xs md:text-sm lg:text-lg tracking-wide ${!isSidebarOpen && 'hidden'}`}>{user?.teamName || 'Team Name'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex-1 flex flex-col px-3 md:px-4 lg:px-6 space-y-0.5 md:space-y-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                    <div className={`text-[10px] lg:text-xs font-bold text-gray-500 uppercase tracking-wider px-2 md:px-3 mb-1 mt-1 ${!isSidebarOpen && 'hidden'}`}>Main</div>
+                    <NavItem to="/team/dashboard" icon={LayoutDashboard} label="Dashboard" />
+                    <NavItem to="/team/events" icon={Calendar} label="Events" />
+                    <NavItem to="/team/media" icon={Image} label="Media" />
+                    <NavItem to="/team/socials" icon={Link2} label="Socials" />
+
+                    <div className={`text-[10px] lg:text-xs font-bold text-gray-500 uppercase tracking-wider px-2 md:px-3 mb-1 mt-2 md:mt-4 ${!isSidebarOpen && 'hidden'}`}>Team</div>
+                    <NavItem to="/team/roster" icon={Users} label="Roster" />
+                    <NavItem to="/team/recruitment" icon={Briefcase} label="Recruitments" />
+                    <NavItem to="/team/scout" icon={Search} label="Scout Players" />
+                    <NavItem to="/team/support" icon={Users} label="Analyst & Coach" />
+                    <NavItem to="/team/notifications" icon={Bell} label="Notifications" />
+
+                    <div className={`text-[10px] lg:text-xs font-bold text-gray-500 uppercase tracking-wider px-2 md:px-3 mb-1 mt-2 md:mt-4 ${!isSidebarOpen && 'hidden'}`}>Strategy Hub</div>
+                    <NavItem to="/team/strategy/maps" icon={Map} label="Maps" />
+                    <NavItem to="/team/strategy/video-analysis" icon={MonitorPlay} label="Video Analysis" />
+                    <NavItem to="/team/strategy/rotations" icon={Route} label="Rotations" />
+                    <NavItem to="/team/strategy/drops" icon={MapPin} label="Team Drops" />
+                    <NavItem to="/team/strategy/planning" icon={ClipboardList} label="Planning" />
+                    <NavItem to="/team/strategy/weaponary" icon={Crosshair} label="Weaponary" />
+
+                    <div className={`text-[10px] lg:text-xs font-bold text-gray-500 uppercase tracking-wider px-2 md:px-3 mb-1 mt-2 md:mt-4 ${!isSidebarOpen && 'hidden'}`}>Analytics</div>
+                    <NavItem to="/team/performance" icon={Activity} label="Performance" />
+                    <NavItem to="/team/social" icon={BarChart} label="Social Stats" />
+                </div>
+
+                <div className="p-3 md:p-4 border-t border-white/5 bg-[#050505] mt-auto">
+                    <button
+                        onClick={handleLogout}
+                        className="group flex items-center w-full p-2 md:p-3 rounded-xl hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-all duration-300 border border-transparent hover:border-red-500/20"
+                    >
+                        <LogOut className={`${isSidebarOpen ? 'mr-2 md:mr-3' : 'mx-auto'} w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:-translate-x-1 flex-shrink-0`} />
+                        <span className={`font-medium text-xs md:text-sm ${!isSidebarOpen && 'hidden'}`}>Logout</span>
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 overflow-y-auto relative z-10 bg-gradient-to-br from-black/0 via-emerald-900/5 to-cyan-900/5 pt-16 md:pt-0">
+                <div className="p-4 md:p-8 w-full">
+                    <Outlet />
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default TeamLayout;
