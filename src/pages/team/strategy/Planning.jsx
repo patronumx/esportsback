@@ -506,25 +506,32 @@ const Planning = () => {
                             </div>
 
                             {/* Modal Content - Scrollable */}
-                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-black/20">
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-[#09090b]">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
 
                                     {/* Left Column: Tactical Scenarios */}
-                                    <div className="lg:col-span-2 space-y-6">
-                                        <div className="bg-[#18181b] border border-white/5 rounded-2xl p-6 relative overflow-hidden group">
+                                    <div className="lg:col-span-8 space-y-6">
+                                        <div className="bg-[#121212] border border-white/5 rounded-3xl p-8 relative overflow-hidden group shadow-2xl">
                                             {/* Decor */}
-                                            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-600/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-                                            <div className="flex justify-between items-center mb-6 relative z-10">
-                                                <h3 className="text-white font-bold text-lg flex items-center gap-2">
-                                                    <Target className="w-5 h-5 text-purple-500" /> Tactical Scenarios
-                                                </h3>
-                                                <div className="flex bg-black/40 rounded-lg p-1 border border-white/10">
+                                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 relative z-10 gap-4">
+                                                <div>
+                                                    <h3 className="text-white font-black text-2xl flex items-center gap-3 tracking-tight">
+                                                        <Target className="w-6 h-6 text-purple-500" /> Tactical Scenarios
+                                                    </h3>
+                                                    <p className="text-gray-500 text-sm mt-1 font-medium">Define your rotation steps and requirements.</p>
+                                                </div>
+
+                                                <div className="bg-black/40 p-1.5 rounded-xl border border-white/5 flex gap-1">
                                                     {['A', 'B', 'C'].map(sc => (
                                                         <button
                                                             key={sc}
                                                             onClick={() => updateActiveMatchField('activeScenario', sc)}
-                                                            className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${activeMatch.activeScenario === sc ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                                                            className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${activeMatch.activeScenario === sc
+                                                                ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20 scale-105'
+                                                                : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'
+                                                                }`}
                                                         >
                                                             Plan {sc}
                                                         </button>
@@ -533,35 +540,64 @@ const Planning = () => {
                                             </div>
 
                                             {/* Scenario Form */}
-                                            <div className="bg-black/20 border border-white/5 rounded-xl p-5 space-y-4">
-                                                <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                                                    <span className="text-sm font-bold text-purple-300">Scenario {activeMatch.activeScenario} Configuration</span>
-                                                    <select
-                                                        className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:border-purple-500 focus:outline-none"
-                                                        value={activeMatch.scenarios[activeMatch.activeScenario].risk}
-                                                        onChange={(e) => updateActiveScenario(activeMatch.activeScenario, 'risk', e.target.value)}
-                                                    >
-                                                        <option value="Low">Low Risk</option>
-                                                        <option value="Medium">Medium Risk</option>
-                                                        <option value="High">High Risk</option>
-                                                    </select>
+                                            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 space-y-6 backdrop-blur-sm relative z-10 transition-all duration-500">
+                                                <div className="flex justify-between items-center pb-4 border-b border-white/5">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)] animate-pulse" />
+                                                        <span className="text-base font-bold text-white tracking-wide">
+                                                            Scenario <span className="text-purple-400">{activeMatch.activeScenario}</span> — configuration
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 bg-black/20 px-3 py-1.5 rounded-lg border border-white/5">
+                                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Risk Level</span>
+                                                        <select
+                                                            className={`bg-transparent text-sm font-bold focus:outline-none cursor-pointer ${activeMatch.scenarios[activeMatch.activeScenario].risk === 'High' ? 'text-red-500' :
+                                                                activeMatch.scenarios[activeMatch.activeScenario].risk === 'Medium' ? 'text-yellow-500' :
+                                                                    'text-green-500'
+                                                                }`}
+                                                            value={activeMatch.scenarios[activeMatch.activeScenario].risk}
+                                                            onChange={(e) => updateActiveScenario(activeMatch.activeScenario, 'risk', e.target.value)}
+                                                        >
+                                                            <option value="Low" className="bg-[#09090b] text-green-500">Low Risk</option>
+                                                            <option value="Medium" className="bg-[#09090b] text-yellow-500">Medium Risk</option>
+                                                            <option value="High" className="bg-[#09090b] text-red-500">High Risk</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Vehicle Requirement</label>
-                                                        <input type="text" className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-purple-500" placeholder="e.g. 2 UAZ + 2 Buggy" value={activeMatch.scenarios[activeMatch.activeScenario].vehicle || ''} onChange={(e) => updateActiveScenario(activeMatch.activeScenario, 'vehicle', e.target.value)} />
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                                            <Car className="w-3.5 h-3.5" /> Vehicle Config
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 outline-none transition-all placeholder:text-gray-700"
+                                                            placeholder="e.g. 2 UAZ + 2 Buggy"
+                                                            value={activeMatch.scenarios[activeMatch.activeScenario].vehicle || ''}
+                                                            onChange={(e) => updateActiveScenario(activeMatch.activeScenario, 'vehicle', e.target.value)}
+                                                        />
                                                     </div>
-                                                    <div>
-                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Timing Window</label>
-                                                        <input type="text" className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-purple-500" placeholder="e.g. 1:30 Phase 1" value={activeMatch.scenarios[activeMatch.activeScenario].timing || ''} onChange={(e) => updateActiveScenario(activeMatch.activeScenario, 'timing', e.target.value)} />
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                                            <Clock className="w-3.5 h-3.5" /> Timing Window
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-gray-200 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 outline-none transition-all placeholder:text-gray-700"
+                                                            placeholder="e.g. 1:30 Phase 1"
+                                                            value={activeMatch.scenarios[activeMatch.activeScenario].timing || ''}
+                                                            onChange={(e) => updateActiveScenario(activeMatch.activeScenario, 'timing', e.target.value)}
+                                                        />
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Detailed Rotation Path</label>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                                        <Flag className="w-3.5 h-3.5" /> Rotation Path & Strategy
+                                                    </label>
                                                     <textarea
-                                                        className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-purple-500 resize-none font-mono leading-relaxed"
-                                                        placeholder="Step by step rotation guide..."
+                                                        className="w-full h-40 bg-[#0a0a0a] border border-white/10 rounded-xl p-4 text-gray-300 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 outline-none transition-all resize-none font-mono leading-relaxed placeholder:text-gray-800"
+                                                        placeholder="Detailed step-by-step rotation guide..."
                                                         value={activeMatch.scenarios[activeMatch.activeScenario].rotation || ''}
                                                         onChange={(e) => updateActiveScenario(activeMatch.activeScenario, 'rotation', e.target.value)}
                                                     />
@@ -571,41 +607,73 @@ const Planning = () => {
 
                                         {/* Intel & Chokes */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="bg-[#18181b] border border-white/5 rounded-2xl p-5">
-                                                <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2 text-orange-400">
+                                            <div className="bg-[#121212] border border-orange-500/20 rounded-3xl p-6 relative overflow-hidden group hover:border-orange-500/40 transition-colors">
+                                                <div className="absolute inset-0 bg-orange-500/5 group-hover:bg-orange-500/10 transition-colors pointer-events-none" />
+                                                <h3 className="text-white font-bold text-sm mb-4 flex items-center gap-2 text-orange-400 relative z-10">
                                                     <Swords className="w-4 h-4" /> Opponent Intel
                                                 </h3>
-                                                <textarea className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-orange-500/50 resize-none mb-2" placeholder="Dangerous teams nearby..." value={activeMatch.keyPlayerNotes || ''} onChange={(e) => updateActiveMatchField('keyPlayerNotes', e.target.value)} />
+                                                <textarea
+                                                    className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-4 text-gray-300 text-sm focus:border-orange-500/50 focus:bg-orange-900/5 outline-none resize-none placeholder:text-gray-700 relative z-10"
+                                                    placeholder="Dangerous teams nearby..."
+                                                    value={activeMatch.keyPlayerNotes || ''}
+                                                    onChange={(e) => updateActiveMatchField('keyPlayerNotes', e.target.value)}
+                                                />
                                             </div>
-                                            <div className="bg-[#18181b] border border-white/5 rounded-2xl p-5">
-                                                <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2 text-red-400">
+                                            <div className="bg-[#121212] border border-red-500/20 rounded-3xl p-6 relative overflow-hidden group hover:border-red-500/40 transition-colors">
+                                                <div className="absolute inset-0 bg-red-500/5 group-hover:bg-red-500/10 transition-colors pointer-events-none" />
+                                                <h3 className="text-white font-bold text-sm mb-4 flex items-center gap-2 text-red-400 relative z-10">
                                                     <AlertOctagon className="w-4 h-4" /> Choke Points
                                                 </h3>
-                                                <textarea className="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-red-500/50 resize-none" placeholder="Danger zones..." value={Array.isArray(activeMatch.chokePoints) ? activeMatch.chokePoints.join(', ') : activeMatch.chokePoints || ''} onChange={(e) => updateActiveMatchField('chokePoints', e.target.value.split(', '))} />
+                                                <textarea
+                                                    className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-4 text-gray-300 text-sm focus:border-red-500/50 focus:bg-red-900/5 outline-none resize-none placeholder:text-gray-700 relative z-10"
+                                                    placeholder="Danger zones..."
+                                                    value={Array.isArray(activeMatch.chokePoints) ? activeMatch.chokePoints.join(', ') : activeMatch.chokePoints || ''}
+                                                    onChange={(e) => updateActiveMatchField('chokePoints', e.target.value.split(', '))}
+                                                />
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Right Column: Post Match & Extra */}
-                                    <div className="space-y-6">
+                                    <div className="lg:col-span-4 space-y-6">
                                         {/* Post Match Review Extended */}
-                                        <div className="bg-[#18181b] border border-white/5 rounded-2xl p-6">
-                                            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
-                                                <BookOpen className="w-5 h-5 text-blue-500" /> Post-Match
-                                            </h3>
-                                            <div className="space-y-4">
-                                                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl text-center">
-                                                    <div className="text-3xl font-black text-white">{activeMatch.postMatch.score}</div>
-                                                    <div className="text-xs font-bold text-blue-300 uppercase tracking-wider">Total Points Obtained</div>
+                                        <div className="bg-[#121212] border border-blue-500/20 rounded-3xl p-6 relative overflow-hidden h-full">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-transparent pointer-events-none" />
+
+                                            <div className="flex items-center gap-3 mb-6 relative z-10">
+                                                <div className="p-2.5 bg-blue-500/20 rounded-xl text-blue-400">
+                                                    <BookOpen className="w-5 h-5" />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] text-gray-500 font-bold uppercase mb-1 block">Mistakes & Learnings</label>
-                                                    <textarea className="w-full h-40 bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-blue-500 resize-none" placeholder="Detailed breakdown of what went wrong or right..." value={activeMatch.postMatch.planVsReality || ''} onChange={(e) => updateActiveMatchField('postMatch', { ...activeMatch.postMatch, planVsReality: e.target.value })} />
+                                                    <h3 className="text-white font-bold text-lg">Post-Match</h3>
+                                                    <p className="text-xs text-blue-400/70 font-bold uppercase tracking-wide">Review & Analysis</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-6 relative z-10">
+                                                <div className="p-6 bg-black/40 border border-blue-500/30 rounded-2xl text-center group hover:border-blue-500/50 transition-colors">
+                                                    <input
+                                                        type="number"
+                                                        className="block w-full text-center bg-transparent text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-blue-200 outline-none pb-2 mb-1"
+                                                        value={activeMatch.postMatch.score}
+                                                        onChange={(e) => updateMatchById(activeMatch.id, 'postMatch', { ...activeMatch.postMatch, score: parseInt(e.target.value) || 0 })}
+                                                        placeholder="0"
+                                                    />
+                                                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Total Points Obtained</div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Mistakes & Learnings</label>
+                                                    <textarea
+                                                        className="w-full h-64 bg-black/40 border border-white/10 rounded-xl p-4 text-blue-100/90 text-sm focus:border-blue-500/50 outline-none resize-none font-mono leading-relaxed selection:bg-blue-500/30 placeholder:text-gray-700"
+                                                        placeholder="Detailed breakdown of what went wrong or right..."
+                                                        value={Array.isArray(activeMatch.postMatch.mistakeTags) ? activeMatch.postMatch.mistakeTags.join(', ') : activeMatch.postMatch.mistakeTags || ''}
+                                                        onChange={(e) => updateMatchById(activeMatch.id, 'postMatch', { ...activeMatch.postMatch, mistakeTags: e.target.value.split(', ') })}
+                                                    />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-
                                 </div>
                             </div>
 
@@ -613,11 +681,12 @@ const Planning = () => {
                             <div className="p-6 border-t border-white/10 bg-[#09090b] flex justify-end">
                                 <button onClick={() => setActiveMatchId(null)} className="px-6 py-2 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-colors">Done</button>
                             </div>
+
                         </div>
                     </div>
                 )
             }
-        </div >
+        </div>
     );
 };
 
