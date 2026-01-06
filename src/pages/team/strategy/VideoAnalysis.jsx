@@ -107,12 +107,34 @@ const VideoAnalysis = () => {
 
             // If it's a local blob, upload it
             if (videoSrc.startsWith('blob:') && videoFile) {
-                const formData = new FormData();
-                formData.append('file', videoFile);
+                showToast.info("Preparing optimized upload...");
 
-                showToast.info("Uploading video to cloud... This may take a moment.");
-                const uploadRes = await api.post('/upload', formData);
-                finalVideoUrl = uploadRes.data.url;
+                // 1. Get Signature from Backend
+                const sigRes = await api.get('/upload/signature');
+                const { signature, timestamp, cloud_name, api_key } = sigRes.data;
+
+                // 2. Upload Direct to Cloudinary (Bypassing Heroku Limit)
+                const formData = new FormData();
+                formData.append("file", videoFile);
+                formData.append("api_key", api_key);
+                formData.append("timestamp", timestamp);
+                formData.append("signature", signature);
+                // formData.append("folder", "esports_strategies"); // Optional
+
+                showToast.info("Uploading directly to cloud (this performs better)...");
+
+                const cloudinaryRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/video/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await cloudinaryRes.json();
+
+                if (!cloudinaryRes.ok) {
+                    throw new Error(data.error?.message || "Cloudinary Upload Failed");
+                }
+
+                finalVideoUrl = data.secure_url;
             }
 
             // Save Analysis Record
@@ -127,8 +149,8 @@ const VideoAnalysis = () => {
             setVideoSrc(finalVideoUrl); // Update state to use remote URL now
             setVideoFile(null); // No longer needed
         } catch (err) {
-            console.error("Save Error Details:", err.response?.data);
-            const errMsg = err.response?.data?.error || err.response?.data?.message || err.message;
+            console.error("Save Error Details:", err);
+            const errMsg = err.response?.data?.error || err.message || "Unknown error";
             showToast.error(`Failed to save: ${errMsg}`);
         } finally {
             setIsSaving(false);
