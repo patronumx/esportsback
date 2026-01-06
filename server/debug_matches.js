@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
-const fs = require('fs');
-require('dotenv').config({ path: './.env' });
+require('dotenv').config({ path: './server/.env' }); // Adjust path if needed
 
 const MapDropSchema = new mongoose.Schema({
     mapName: String,
@@ -11,44 +10,44 @@ const MapDropSchema = new mongoose.Schema({
     matchNumber: String,
     updatedAt: Date
 });
-const MapDrop = mongoose.model('MapDrop', MapDropSchema, 'mapdrops');
+const MapDrop = mongoose.model('MapDrop', MapDropSchema, 'mapdrops'); // Explicit collection name if needed, usually plural of model
 
 const RotationSchema = new mongoose.Schema({
     teamId: String,
     mapId: String,
     objects: Array
 });
-const Rotation = mongoose.model('Rotation', RotationSchema, 'rotations');
+const Rotation = mongoose.model('Rotation', RotationSchema);
 
 async function checkData() {
     try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/esports-db');
+        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/esports-db'); // Default if env missing
+        console.log("Connected to DB");
 
-        const drops = await MapDrop.find({}).sort({ updatedAt: -1 });
+        console.log("--- MapDrops (Grand Finals / Finals) ---");
+        // Regex to match "Finals" (case insensitive)
+        const drops = await MapDrop.find({
+            $or: [
+                { stage: { $regex: /Finals/i } },
+                { title: { $regex: /Finals/i } }
+            ]
+        }).sort({ stage: 1, day: 1, matchNumber: 1 });
 
-        const results = [];
+        drops.forEach(d => {
+            console.log(`ID: ${d._id} | Title: ${d.title} | Stage: ${d.stage} | Day: ${d.day} | Match: ${d.matchNumber} | Map: ${d.mapName} | Objects: ${d.objects ? d.objects.length : 0}`);
+        });
 
+        console.log("\n--- Rotations (Saved Strategies) ---");
+        // Check for rotations linked to these events
         for (let d of drops) {
             const teamId = `event_${d._id}`;
             const rot = await Rotation.findOne({ teamId: teamId });
-
-            if ((d.stage && d.stage.match(/Finals/i)) || (d.title && d.title.match(/Finals/i))) {
-                results.push({
-                    id: d._id,
-                    title: d.title,
-                    stage: d.stage,
-                    day: d.day,
-                    match: d.matchNumber,
-                    objectsCount: d.objects ? d.objects.length : 0,
-                    strategyFound: !!rot,
-                    strategyObjectsCount: rot ? rot.objects.length : 0,
-                    // contentSample: rot && rot.objects.length > 0 ? JSON.stringify(rot.objects[0]) : null
-                });
+            if (rot) {
+                console.log(`Found Strategy for ${d.stage} ${d.day} Match ${d.matchNumber} (ID: ${d._id}) -> RotObjects: ${rot.objects.length}`);
+            } else {
+                // console.log(`No Strategy for ${d.stage} ${d.day} Match ${d.matchNumber}`);
             }
         }
-
-        fs.writeFileSync('debug_matches.json', JSON.stringify(results, null, 2), 'utf8');
-        console.log("Written to debug_matches.json");
 
     } catch (err) {
         console.error(err);
