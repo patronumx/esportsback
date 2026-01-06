@@ -136,14 +136,13 @@ const DrawHandler = ({ tool, onCreated }) => {
             case 'polygon':
                 handler = new L.Draw.Polygon(map, options);
                 break;
-            // Rectangle handled manually for click-click interaction
-            // case 'rectangle':
-            // case 'rect':
-            //    handler = new L.Draw.Rectangle(map, options);
-            //    break;
-            // case 'circle':
-            //     handler = new L.Draw.Circle(map, options);
-            //     break;
+            case 'rectangle':
+            case 'rect':
+                handler = new L.Draw.Rectangle(map, options);
+                break;
+            case 'circle':
+                handler = new L.Draw.Circle(map, options);
+                break;
             default:
                 break;
         }
