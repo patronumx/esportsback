@@ -670,6 +670,8 @@ const VideoAnalysis = () => {
                                     onTimeUpdate={handleTimeUpdate}
                                     onLoadedMetadata={handleLoadedMetadata}
                                     onEnded={() => setIsPlaying(false)}
+                                    playsInline
+                                    webkit-playsinline="true"
                                 // Make sure video doesn't capture clicks, passed to canvas
                                 />
                                 <Stage
