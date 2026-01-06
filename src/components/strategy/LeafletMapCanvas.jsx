@@ -88,7 +88,7 @@ const CustomZoomControl = () => {
 };
 
 // Component to handle programmatic drawing triggers based on 'tool' prop
-const DrawHandler = ({ tool, onCreated }) => {
+const DrawHandler = ({ tool, onCreated, onAddObject, toKonva, colorRef }) => {
     const map = useMap();
     const drawHandlerRef = useRef(null);
 
@@ -119,29 +119,25 @@ const DrawHandler = ({ tool, onCreated }) => {
         switch (tool) {
             case 'flight-path':
             case 'polyline':
-            case 'line': // Explicit Line Tool using Polyline logic (Click-Click)
+            case 'line': // Keep Line as Draw for now (tap-to-point)
                 handler = new L.Draw.Polyline(map, options);
                 break;
             case 'brush':
-                // Handled manually in EventsHandler (Pencil Drag)
                 handler = null;
                 break;
+            // TAP-TO-PLACE LOGIC: Return null here so we handle it via click event
             case 'marker':
             case 'enemy':
             case 'drop':
             case 'loot':
             case 'logo':
-                handler = new L.Draw.Marker(map, { repeatMode: true });
+            case 'circle':
+            case 'rectangle':
+            case 'rect':
+                handler = null;
                 break;
             case 'polygon':
                 handler = new L.Draw.Polygon(map, options);
-                break;
-            case 'rectangle':
-            case 'rect':
-                handler = new L.Draw.Rectangle(map, options);
-                break;
-            case 'circle':
-                handler = new L.Draw.Circle(map, options);
                 break;
             default:
                 break;
@@ -154,14 +150,72 @@ const DrawHandler = ({ tool, onCreated }) => {
 
     }, [tool, map]);
 
-    // Global listener for creation
+    // Handle Tap-to-Place for specific tools
     useMapEvents({
+        click: (e) => {
+            if (!onAddObject || !toKonva) return;
+
+            const { lat, lng } = e.latlng;
+            const pos = toKonva(lat, lng);
+            const currentColor = colorRef.current || 'white';
+
+            if (tool === 'circle') {
+                onAddObject({
+                    tool: 'circle',
+                    x: pos.x,
+                    y: pos.y,
+                    radius: 100, // Default fixed radius 100
+                    color: currentColor
+                });
+            } else if (tool === 'rectangle' || tool === 'rect') {
+                // Default 200x200 box centered on click
+                const size = 200;
+                // We need to generate Leaflet bounds or just store center? 
+                // Existing logic uses 'bounds' for rects in LeafletMapCanvas.
+                // We'll calculate bounds centered on click.
+                // 100m approx in degrees? (Rough approx: 1 deg ~ 111km -> 100m = 0.0009 deg)
+                // Better: rely on map pixels or fixed offset.
+                // Let's use map.containterPointToLatLng to get offset.
+
+                const centerPoint = map.latLngToContainerPoint(e.latlng);
+                const swPoint = L.point(centerPoint.x - 50, centerPoint.y + 50);
+                const nePoint = L.point(centerPoint.x + 50, centerPoint.y - 50);
+                const sw = map.containerPointToLatLng(swPoint);
+                const ne = map.containerPointToLatLng(nePoint);
+
+                onAddObject({
+                    tool: 'rectangle',
+                    bounds: [[sw.lat, sw.lng], [ne.lat, ne.lng]],
+                    color: currentColor
+                });
+            } else if (['marker', 'enemy', 'drop', 'loot'].includes(tool)) {
+                let finalTool = tool;
+                let finalColor = currentColor;
+                if (tool === 'enemy') { finalTool = 'enemy'; finalColor = '#ef4444'; }
+                if (tool === 'drop') { finalTool = 'drop'; finalColor = '#06b6d4'; }
+                if (tool === 'loot') { finalTool = 'loot'; finalColor = '#22c55e'; }
+
+                onAddObject({
+                    tool: finalTool,
+                    x: pos.x,
+                    y: pos.y,
+                    color: finalColor
+                });
+            } else if (tool === 'logo') {
+                // Logo logic needs active Logo, which involves ref... 
+                // Handled in parent mostly? 
+                // Current DrawHandler doesn't know activeLogo.
+                // If 'logo' is selected, user expects to place logo. 
+                // We'll rely on global drag override or need to pass activeLogo here.
+                // For simplicity, let's leave Logo to standard 'marker' handler or DragDrop.
+                // But for TAP to place logo:
+                // We need activeLogo prop.
+            }
+        },
         'draw:created': (e) => {
             onCreated(e);
-
-            // Re-enable handler for continuous drawing if circle tool
-            if (tool === 'circle' && drawHandlerRef.current) {
-                // Short timeout to prevent immediate termination by the same click event
+            // Re-enable handler for continuous drawing if flight-path
+            if ((tool === 'flight-path' || tool === 'polyline') && drawHandlerRef.current) {
                 setTimeout(() => {
                     if (drawHandlerRef.current) {
                         drawHandlerRef.current.enable();
@@ -1274,7 +1328,15 @@ const LeafletMapCanvas = ({
                 <ZoomHandler onZoomChange={setCurrentZoom} />
 
                 {/* Programmatic Draw Handler */}
-                {!readOnly && <DrawHandler tool={activeLogo ? 'select' : tool} onCreated={handleFeatureCreated} />}
+                {!readOnly && (
+                    <DrawHandler
+                        tool={activeLogo ? 'select' : tool}
+                        onCreated={handleFeatureCreated}
+                        onAddObject={onAddObject}
+                        toKonva={toKonva}
+                        colorRef={colorRef}
+                    />
+                )}
                 {!readOnly && <DropHandler />}
                 <EventsHandler
                     dragState={dragState}

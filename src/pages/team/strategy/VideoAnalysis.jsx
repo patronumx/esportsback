@@ -682,7 +682,7 @@ const VideoAnalysis = () => {
                                     onClick={handleStageClick}
                                     onTap={handleStageClick}
                                     className="absolute inset-0 z-10"
-                                    style={{ cursor: currentTool === 'cursor' ? 'default' : 'crosshair' }}
+                                    style={{ cursor: currentTool === 'cursor' ? 'default' : 'crosshair', touchAction: 'none' }}
                                 >
                                     <Layer>
                                         {annotations.map((ann, i) => (
