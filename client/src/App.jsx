@@ -197,6 +197,7 @@ function App() {
 
               {/* Auth Routes inside Public Layout (Transparent) */}
               <Route path="/team/login" element={<GuestRoute><UnifiedLogin type="team" /></GuestRoute>} />
+              <Route path="/sys-admin-secret-login/auth" element={<Navigate to="/secret-admin-login" replace />} />
               <Route path="/secret-admin-login" element={<UnifiedLogin type="admin" />} />
               <Route path="/pro/login" element={<GuestRoute><ProLogin /></GuestRoute>} />
               <Route path="/talent/player/signup" element={<GuestRoute><PlayerSignup /></GuestRoute>} />
