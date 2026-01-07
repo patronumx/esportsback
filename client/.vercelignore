@@ -1,5 +1,0 @@
-server
-Procfile
-heroku-build-script.js
-.slugignore
-.env
