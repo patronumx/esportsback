@@ -22,6 +22,7 @@ const TeamEvents = () => {
             setLoading(false);
         } catch (error) {
             console.error('Failed to fetch events', error);
+            showToast.error(error.response?.data?.message || 'Failed to fetch events');
             setLoading(false);
         }
     };
@@ -145,7 +146,7 @@ const TeamEvents = () => {
             showToast.success(editingId ? 'Event updated successfully' : 'Event created successfully');
         } catch (error) {
             console.error('Failed to save event', error);
-            showToast.error('Failed to save event');
+            showToast.error(error.response?.data?.message || 'Failed to save event');
         }
     };
     const handleEditEvent = (event) => {
