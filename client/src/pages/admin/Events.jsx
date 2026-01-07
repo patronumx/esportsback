@@ -167,7 +167,7 @@ const AdminEvents = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[60] animate-in fade-in duration-200">
                     <div className="bg-[#0a0a0a] rounded-3xl p-8 w-full max-w-lg border border-white/10 shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
 
@@ -187,8 +187,8 @@ const AdminEvents = () => {
                                     onChange={e => setFormData({ ...formData, team: e.target.value })}
                                     required
                                 >
-                                    <option value="">Select Team</option>
-                                    {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                                    <option value="" className="bg-gray-900 text-white">Select Team</option>
+                                    {teams.map(t => <option key={t._id} value={t._id} className="bg-gray-900 text-white">{t.name}</option>)}
                                 </select>
                             </div>
 
@@ -211,10 +211,10 @@ const AdminEvents = () => {
                                         value={formData.type}
                                         onChange={e => setFormData({ ...formData, type: e.target.value })}
                                     >
-                                        <option value="scrim">Scrim</option>
-                                        <option value="tournament">Tournament</option>
-                                        <option value="media-day">Media Day</option>
-                                        <option value="meeting">Meeting</option>
+                                        <option value="scrim" className="bg-gray-900 text-white">Scrim</option>
+                                        <option value="tournament" className="bg-gray-900 text-white">Tournament</option>
+                                        <option value="media-day" className="bg-gray-900 text-white">Media Day</option>
+                                        <option value="meeting" className="bg-gray-900 text-white">Meeting</option>
                                     </select>
                                 </div>
                                 <div>
@@ -328,9 +328,9 @@ const AdminEvents = () => {
                                                                     setFormData({ ...formData, schedule: newSchedule });
                                                                 }}
                                                             >
-                                                                <option value="Erangel">Erangel</option>
-                                                                <option value="Miramar">Miramar</option>
-                                                                <option value="Rondo">Rondo</option>
+                                                                <option value="Erangel" className="bg-gray-900 text-white">Erangel</option>
+                                                                <option value="Miramar" className="bg-gray-900 text-white">Miramar</option>
+                                                                <option value="Rondo" className="bg-gray-900 text-white">Rondo</option>
                                                             </select>
                                                             <input
                                                                 type="time"
