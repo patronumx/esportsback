@@ -30,9 +30,7 @@ import {
     Upload,
     Share2
 } from 'lucide-react';
-import thumbvideo from '../../assets/thumbvideo.mp4';
-import Media1 from '../../assets/Media1.MP4';
-import Media2 from '../../assets/Media2.MP4';
+
 
 const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -114,9 +112,7 @@ const Dashboard = () => {
         { id: 4, title: 'Player Interview Setup', url: 'https://placehold.co/400x300/c084fc/ffffff?text=Interview', type: 'photo' },
         { id: 5, title: 'Tournament Recap Video', url: 'https://placehold.co/400x300/d8b4fe/ffffff?text=Video', type: 'video' },
         { id: 6, title: 'Behind the Scenes', url: 'https://placehold.co/400x300/e9d5ff/ffffff?text=BTS', type: 'photo' },
-        { id: 7, title: 'Thumb Video', url: thumbvideo, type: 'video' },
-        { id: 8, title: 'Media 1', url: Media1, type: 'video' },
-        { id: 9, title: 'Media 2', url: Media2, type: 'video' },
+
     ];
 
     const getTeamLogo = (teamId) => {
@@ -737,7 +733,7 @@ const Dashboard = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {stats.contentLog.map((item) => {
                                     const isVideo = item.title.includes('Video') || item.title.includes('Reel') || item.title.includes('Media');
-                                    const url = item.id === 6 ? thumbvideo : item.id === 7 ? Media1 : item.id === 8 ? Media2 : null;
+                                    const url = null;
 
                                     return (
                                         <motion.div

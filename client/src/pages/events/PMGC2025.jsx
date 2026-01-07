@@ -8,8 +8,6 @@ import pmgcLogo from '../../assets/PMGC.png';
 import aboutimg from '../../assets/aboutimg.jpeg';
 import aboutimg2 from '../../assets/aboutimg2.jpeg';
 
-import Media1 from '../../assets/Media1.MP4';
-import Media2 from '../../assets/Media2.MP4';
 import dash1 from '../../assets/dash1.png';
 import dash2 from '../../assets/dash2.png';
 import dash3 from '../../assets/dash3.png';
