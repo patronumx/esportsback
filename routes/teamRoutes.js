@@ -313,17 +313,32 @@ router.post('/roster', async (req, res) => {
         // Then we update the Team.players array to match this list.
 
         const playerIds = [];
+        const processedPlayerIds = new Set();
 
         for (const p of roster) {
             if (!p.name && !p.ign) continue; // Skip empty entries
 
-            // Try to find existing player for this team
             let player = null;
-            if (p.uid) {
+
+            // 1. Try to find by specific ID (Best for updates)
+            if (p._id) {
+                player = await Player.findById(p._id);
+            }
+
+            // 2. Try to find by UID
+            if (!player && p.uid) {
                 player = await Player.findOne({ team: teamId, uid: p.uid });
             }
+
+            // 3. Try to find by IGN
             if (!player && p.ign) {
                 player = await Player.findOne({ team: teamId, ign: p.ign });
+            }
+
+            // 4. CRITICAL: Prevent duplicate linking in the same roster
+            if (player && processedPlayerIds.has(player._id.toString())) {
+                console.log(`[Roster Sync] Conflict: Player ${player.ign} (${player._id}) already processed in this batch. treating as new entry.`);
+                player = null; // Force creation of a NEW player for this slot
             }
 
             const playerData = {
@@ -345,7 +360,9 @@ router.post('/roster', async (req, res) => {
                 // Create new
                 player = await Player.create(playerData);
             }
+
             playerIds.push(player._id);
+            processedPlayerIds.add(player._id.toString());
         }
 
         // 3. Update Team.players relation
