@@ -32,3 +32,6 @@ dist-ssr
 .wwebjs_auth
 server/.wwebjs_auth
 session
+
+# Ignore Server
+server/
