@@ -15,7 +15,16 @@ const initialize = () => {
     client = new Client({
         authStrategy: new LocalAuth({ dataPath: './.wwebjs_auth' }),
         puppeteer: {
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process', // <- this one doesn't works in Windows
+                '--disable-gpu'
+            ],
             headless: 'new' // Updated for newer puppeteer versions
         }
     });
