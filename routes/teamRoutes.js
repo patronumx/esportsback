@@ -291,6 +291,7 @@ router.get('/audit-logs', async (req, res) => {
 router.post('/roster', async (req, res) => {
     try {
         const { roster } = req.body; // Expecting array of { name, role, ... }
+        console.log('Received Roster Sync Request:', JSON.stringify(roster, null, 2));
         const teamId = req.user.teamId;
 
         // Validate
@@ -335,6 +336,7 @@ router.post('/roster', async (req, res) => {
                 image: p.image,    // Keep consistency
                 socialLinks: p.socialLinks || {}
             };
+            console.log(`[Roster Sync] Processing Player: ${playerData.name}, Role: ${playerData.role}`);
 
             if (player) {
                 // Update existing
