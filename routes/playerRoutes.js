@@ -11,28 +11,38 @@ router.use(authorize('player', 'team')); // Allow players (and teams for debug i
 // Get matches for a player
 router.get('/matches', async (req, res) => {
     try {
-        // Find the player profile associated with the user
+        let playerId = req.user.playerId;
+
+        // Self-Healing: If session missing playerId, try to resolve via email
+        if (!playerId) {
+            const playerByEmail = await Player.findOne({ email: req.user.email });
+            if (playerByEmail) {
+                console.log(`[Matches] Self-healing: Found player ${playerByEmail._id} for user ${req.user.email}`);
+                playerId = playerByEmail._id;
+
+                // Optional: Persist this fix to User model so future logins might be cleaner?
+                // Ideally login handles this, but we can do a lazy fix here if User model is available.
+                // const User = require('../models/User');
+                // await User.findByIdAndUpdate(req.user._id, { playerId: playerId });
+            }
+        }
+
         let player;
-        if (req.user.playerId) {
-            player = await Player.findById(req.user.playerId);
-        } else if (req.user.role === 'player') {
-            // Fallback: try to find by some other relation if playerId is missing on user? 
-            // For now assume playerId is populated on User creation/login.
-            return res.status(404).json({ message: 'Player profile not found linked to user' });
+        if (playerId) {
+            player = await Player.findById(playerId);
         }
 
         if (!player) {
-            return res.status(404).json({ message: 'Player profile not found' });
+            // Last resort: Create a fresh profile? Or just return 404.
+            // For now, consistent with logic, return 404 if TRULY no profile exists.
+            return res.status(404).json({ message: 'Player profile not found. Please complete your recruitment profile.' });
         }
 
         // Find Recruitment Posts that match this player's stats
-        // We match: Role (exact) ONLY as requested
         let matches = await RecruitmentPost.find({
             status: 'Open',
             role: player.role
-        }).populate('team', 'name logoUrl phoneNumber socialLinks'); // Get team name/logo/contact
-
-        // Experience and Age filters removed as per user request (only Role matches required)
+        }).populate('team', 'name logoUrl phoneNumber socialLinks');
 
         res.json({ matches, playerDevice: player.device });
     } catch (error) {
