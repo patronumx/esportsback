@@ -39,7 +39,7 @@ const TeamProfile = () => {
             <div className="relative rounded-3xl overflow-hidden bg-[#111] border border-white/10">
                 {/* Banner Placeholder or Image */}
                 <div className="h-48 md:h-64 bg-gradient-to-r from-violet-900/40 to-indigo-900/40 w-full relative">
-                    <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20"></div>
+                    <div className="absolute inset-0 opacity-20"></div>
                 </div>
 
                 <div className="px-6 md:px-10 pb-8 relative">

@@ -145,7 +145,7 @@ const ProtectedRoute = ({ children, allowedRole, isProRequired }) => {
     // For admin, we don't want to redirect to the secret login if they are just a guest hitting a protected route blindly.
     // But if they are trying to access admin, they likely know the URL. 
     // Let's redirect to the secret login.
-    return <Navigate to={allowedRole === 'admin' ? '/sys-admin-secret-login/auth' : '/team/login'} />;
+    return <Navigate to={allowedRole === 'admin' ? '/secret-admin-login' : '/team/login'} />;
   }
 
   if (allowedRole && user.role !== allowedRole) {
@@ -197,7 +197,7 @@ function App() {
 
               {/* Auth Routes inside Public Layout (Transparent) */}
               <Route path="/team/login" element={<GuestRoute><UnifiedLogin type="team" /></GuestRoute>} />
-              <Route path="/sys-admin-secret-login/auth" element={<UnifiedLogin type="admin" />} />
+              <Route path="/secret-admin-login" element={<UnifiedLogin type="admin" />} />
               <Route path="/pro/login" element={<GuestRoute><ProLogin /></GuestRoute>} />
               <Route path="/talent/player/signup" element={<GuestRoute><PlayerSignup /></GuestRoute>} />
               <Route path="/talent/team/signup" element={<GuestRoute><TeamSignup /></GuestRoute>} />

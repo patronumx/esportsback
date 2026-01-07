@@ -7,13 +7,13 @@ import { pmgcTeams } from '../../data/pmgcTeams';
 import pmgcLogo from '../../assets/PMGC.png';
 import aboutimg from '../../assets/aboutimg.jpeg';
 import aboutimg2 from '../../assets/aboutimg2.jpeg';
-import thumbvideo from '../../assets/thumbvideo.mp4';
+
 import Media1 from '../../assets/Media1.MP4';
 import Media2 from '../../assets/Media2.MP4';
 import dash1 from '../../assets/dash1.png';
 import dash2 from '../../assets/dash2.png';
 import dash3 from '../../assets/dash3.png';
-import Media3 from '../../assets/Media3.mp4';
+
 
 import { Link } from "react-router-dom";
 
@@ -736,67 +736,7 @@ const PMGC2025 = () => {
               </div>
             </div>
 
-            {/* Highlight Video Section */}
-            <div className="mt-16 mb-16 md:mt-24 md:mb-24 max-w-6xl mx-auto px-6">
-              <div className="grid md:grid-cols-2 gap-12 items-center">
-                {/* Left Column: Portrait Video */}
-                <div className="flex justify-center md:justify-end">
-                  <div className="relative w-full max-w-[360px] max-h-[650px] rounded-3xl overflow-hidden border-4 border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.2)] group bg-black">
-                    <video
-                      className="w-full h-full object-cover"
-                      controls
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                    >
-                      <source src={thumbvideo} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                  </div>
-                </div>
 
-                {/* Right Column: Content */}
-                <div className="text-left">
-                  <div className="mb-8">
-                    <h2 className="text-3xl md:text-4xl font-bold text-slate-50 uppercase tracking-wider mb-3">
-                      Highlight of EWC 2025
-                    </h2>
-                    <div className="h-1.5 w-24 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full" />
-                  </div>
-
-                  <ul className="space-y-6">
-                    <li className="flex items-start gap-4 group">
-                      <div className="mt-1 w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/30 group-hover:bg-amber-500/20 group-hover:border-amber-500/60 transition-all shrink-0">
-                        <span className="text-amber-400 text-sm">�</span>
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-bold text-slate-200 group-hover:text-amber-300 transition-colors">Comprehensive Event Coverage</h4>
-                        <p className="text-sm text-slate-400 mt-1">Bringing esports stories to life through expert coverage, dynamic storytelling, and real-time event insights.</p>
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-4 group">
-                      <div className="mt-1 w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/30 group-hover:bg-amber-500/20 group-hover:border-amber-500/60 transition-all shrink-0">
-                        <span className="text-amber-400 text-sm">🎤</span>
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-bold text-slate-200 group-hover:text-amber-300 transition-colors">Exclusive Behind-the-Scenes</h4>
-                        <p className="text-sm text-slate-400 mt-1">Unprecedented access to player interviews, backstage moments, and the untold stories of the championship.</p>
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-4 group">
-                      <div className="mt-1 w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/30 group-hover:bg-amber-500/20 group-hover:border-amber-500/60 transition-all shrink-0">
-                        <span className="text-amber-400 text-sm">🌍</span>
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-bold text-slate-200 group-hover:text-amber-300 transition-colors">Global Media Presence</h4>
-                        <p className="text-sm text-slate-400 mt-1">Connecting fans worldwide with high-quality content, professional photography, and immersive storytelling.</p>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
 
             {/* Core Deliverables — On-Site Capture */}
             <div className="mt-16 mb-16 md:mt-24 md:mb-24 max-w-7xl mx-auto px-6">
