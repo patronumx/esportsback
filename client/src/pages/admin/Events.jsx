@@ -259,29 +259,93 @@ const AdminEvents = () => {
                                         <p className="text-gray-500 text-sm text-center italic py-2">No schedule days added yet.</p>
                                     )}
                                     {formData.schedule?.map((day, index) => (
-                                        <div key={index} className="bg-white/5 p-3 rounded-lg border border-white/5 flex items-center gap-3">
-                                            <span className="text-white font-bold text-sm w-12">Day {index + 1}</span>
-                                            <input
-                                                type="date"
-                                                className="flex-1 p-2 bg-black/20 text-white rounded border border-white/10 focus:border-blue-500 text-sm"
-                                                value={day.date ? new Date(day.date).toISOString().split('T')[0] : ''}
-                                                onChange={e => {
-                                                    const newSchedule = [...formData.schedule];
-                                                    newSchedule[index].date = e.target.value;
-                                                    setFormData({ ...formData, schedule: newSchedule });
-                                                }}
-                                                required
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const newSchedule = formData.schedule.filter((_, i) => i !== index);
-                                                    setFormData({ ...formData, schedule: newSchedule });
-                                                }}
-                                                className="p-1.5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded transition-colors"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
+                                        <div key={index} className="bg-white/5 p-3 rounded-lg border border-white/5 flex flex-col gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-white font-bold text-sm w-12">Day {index + 1}</span>
+                                                <input
+                                                    type="date"
+                                                    className="flex-1 p-2 bg-black/20 text-white rounded border border-white/10 focus:border-blue-500 text-sm"
+                                                    value={day.date ? new Date(day.date).toISOString().split('T')[0] : ''}
+                                                    onChange={e => {
+                                                        const newSchedule = [...formData.schedule];
+                                                        newSchedule[index].date = e.target.value;
+                                                        setFormData({ ...formData, schedule: newSchedule });
+                                                    }}
+                                                    required
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs text-gray-500 font-bold uppercase hidden sm:inline">Matches</span>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="15"
+                                                        placeholder="#"
+                                                        className="w-14 p-2 bg-black/20 text-white rounded border border-white/10 focus:border-blue-500 text-sm text-center"
+                                                        value={day.matches?.length || 0}
+                                                        onChange={e => {
+                                                            const count = Math.max(0, parseInt(e.target.value) || 0);
+                                                            const newSchedule = [...formData.schedule];
+                                                            const currentMatches = newSchedule[index].matches || [];
+
+                                                            if (count > currentMatches.length) {
+                                                                const toAdd = count - currentMatches.length;
+                                                                for (let i = 0; i < toAdd; i++) {
+                                                                    currentMatches.push({ map: 'Erangel', time: '' });
+                                                                }
+                                                            } else if (count < currentMatches.length) {
+                                                                currentMatches.splice(count);
+                                                            }
+
+                                                            newSchedule[index].matches = currentMatches;
+                                                            setFormData({ ...formData, schedule: newSchedule });
+                                                        }}
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newSchedule = formData.schedule.filter((_, i) => i !== index);
+                                                        setFormData({ ...formData, schedule: newSchedule });
+                                                    }}
+                                                    className="p-1.5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded transition-colors"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+
+                                            {/* Matches List */}
+                                            {day.matches && day.matches.length > 0 && (
+                                                <div className="space-y-2 pl-2 sm:pl-4 border-l-2 border-white/10 ml-1 sm:ml-2">
+                                                    {day.matches.map((match, matchIndex) => (
+                                                        <div key={matchIndex} className="flex items-center gap-2">
+                                                            <span className="text-gray-500 text-xs w-6 font-mono">M{matchIndex + 1}</span>
+                                                            <select
+                                                                className="flex-1 p-2 bg-black/20 text-white rounded border border-white/10 focus:border-blue-500 text-sm"
+                                                                value={match.map}
+                                                                onChange={(e) => {
+                                                                    const newSchedule = [...formData.schedule];
+                                                                    newSchedule[index].matches[matchIndex].map = e.target.value;
+                                                                    setFormData({ ...formData, schedule: newSchedule });
+                                                                }}
+                                                            >
+                                                                <option value="Erangel">Erangel</option>
+                                                                <option value="Miramar">Miramar</option>
+                                                                <option value="Rondo">Rondo</option>
+                                                            </select>
+                                                            <input
+                                                                type="time"
+                                                                className="p-2 bg-black/20 text-white rounded border border-white/10 focus:border-blue-500 text-sm"
+                                                                value={match.time}
+                                                                onChange={(e) => {
+                                                                    const newSchedule = [...formData.schedule];
+                                                                    newSchedule[index].matches[matchIndex].time = e.target.value;
+                                                                    setFormData({ ...formData, schedule: newSchedule });
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
