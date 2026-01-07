@@ -29,7 +29,7 @@ const Navbar = () => {
     // { to: '/creators-partners', label: 'Creators' },
     { to: '/brands', label: 'Brands' },
     { to: '/talent', label: 'Talent' },
-    { to: '/stats', label: 'Stats with Portal' },
+    // { to: '/stats', label: 'Stats with Portal' },
     // { to: '/events', label: 'Events' }, // handled separately for dropdown
     { to: '/tech-anti-cheat', label: 'Technology' },
     // { to: '/faq', label: 'FAQ' },
