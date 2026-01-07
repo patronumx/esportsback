@@ -37,7 +37,7 @@ import ProLogin from './pages/auth/ProLogin';
 import ProDashboard from './pages/pro/Dashboard';
 
 // Event Pages
-import PMGC2025 from './pages/events/PMGC2025';
+import PMGC2025 from './pages/events/PMGC2025New';
 import PGC2025 from './pages/events/PGC2025';
 import Stats from './pages/Stats';
 
