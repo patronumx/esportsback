@@ -37,7 +37,7 @@ import ProLogin from './pages/auth/ProLogin';
 import ProDashboard from './pages/pro/Dashboard';
 
 // Event Pages
-import PMGC2025 from './pages/events/PMGC2025New';
+// import PMGC2025 from './pages/events/PMGC2025New';
 import PGC2025 from './pages/events/PGC2025';
 import Stats from './pages/Stats';
 
@@ -188,7 +188,7 @@ function App() {
               <Route path="/join-us" element={<JoinUs />} />
               <Route path="/media-coverage" element={<MediaCoverage />} />
               <Route path="/tech-anti-cheat" element={<TechAntiCheat />} />
-              <Route path="/events/pmgc-2025" element={<PMGC2025 />} />
+              {/* <Route path="/events/pmgc-2025" element={<PMGC2025 />} /> */}
               <Route path="/events/pgc-2025" element={<PGC2025 />} />
               <Route path="/talent" element={<Talent />} />
               <Route path="/talent/pubg-mobile" element={<PUBGMobile />} />
