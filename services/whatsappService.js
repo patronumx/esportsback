@@ -35,8 +35,8 @@ const initialize = async () => {
             printQRInTerminal: true,
             browser: Browsers.macOS('Desktop'),
             syncFullHistory: false,
-            connectTimeoutMs: 60000,
-            defaultQueryTimeoutMs: 60000,
+            connectTimeoutMs: 120000,
+            defaultQueryTimeoutMs: 120000,
             keepAliveIntervalMs: 10000,
             retryRequestDelayMs: 250,
         });
