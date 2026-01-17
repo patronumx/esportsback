@@ -1,7 +1,7 @@
-const { makeWASocket, DisconnectReason, Browsers } = require('@whiskeysockets/baileys');
+const { makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode');
 const fs = require('fs');
-const useMongoDBAuthState = require('./mongoAuth');
+// const useMongoDBAuthState = require('./mongoAuth'); // Reverted
 
 let sock;
 let qrCodeData = null;
@@ -10,13 +10,16 @@ let readyTimestamp = null;
 let connectionUser = null;
 
 const initialize = async () => {
-    console.log('Initializing WhatsApp Client (Baileys - MongoDB Auth)...');
+    console.log('Initializing WhatsApp Client (Baileys)...');
 
     // Safety check: Avoid multiple initializations if already fully connected
+    // But Baileys handles reconnects, so we should be careful.
     if (sock) return;
 
     try {
-        const { state, saveCreds } = await useMongoDBAuthState('patronum_wa_auth');
+        // Reverted to file auth as per request: session is temporary on Heroku
+        const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
+        // const { state, saveCreds } = await useMongoDBAuthState('patronum_wa_auth');
 
         sock = makeWASocket({
             auth: state,
@@ -52,7 +55,7 @@ const initialize = async () => {
                     initialize(); // Reconnect automatically
                 } else {
                     console.log('Connection closed. You are logged out.');
-                    // Clear auth logic handled by mongoAuth adapter mostly, but we can clean up if needed
+                    // Optional: Delete auth folder
                 }
             } else if (connection === 'open') {
                 console.log('WhatsApp Client is Ready! (Baileys)');
@@ -61,6 +64,7 @@ const initialize = async () => {
                 readyTimestamp = Date.now();
 
                 // Get user info
+                // sock.user.id is usually like "92333...@s.whatsapp.net:5@..."
                 const rawId = sock.user?.id || '';
                 connectionUser = rawId.split(':')[0]; // Extract phone number part
                 console.log('Connected User:', connectionUser);
@@ -118,9 +122,12 @@ const logout = async () => {
             status = 'disconnected';
             qrCodeData = null;
             connectionUser = null;
-            console.log('Logged out.');
-            // Note: If you want to clear DB auth data on logout, call a helper in mongoAuth
-            // For now, logout just kills session.
+
+            // Clear auth folder logic if needed
+            if (fs.existsSync('auth_info_baileys')) {
+                fs.rmSync('auth_info_baileys', { recursive: true, force: true });
+            }
+            console.log('Logged out and cleared auth info.');
         } catch (e) {
             console.error('Logout failed:', e);
         }
