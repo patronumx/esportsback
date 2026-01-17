@@ -20,14 +20,6 @@ const initialize = async () => {
     isInitializing = true;
 
     try {
-        // AGGRESSIVE CLEANUP: If we are initializing, it means we want a fresh start.
-        // On Heroku, a restart might leave garbage files if persistent storage was somehow active? 
-        // Or if the previous socket didn't close cleanly.
-        if (fs.existsSync('auth_info_baileys')) {
-            console.log('Cleaning up old auth session...');
-            fs.rmSync('auth_info_baileys', { recursive: true, force: true });
-        }
-
         const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
 
         sock = makeWASocket({
