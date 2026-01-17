@@ -153,6 +153,14 @@ router.get('/admin/whatsapp/status', verifyAdmin, (req, res) => {
     }
     try {
         const status = whatsappService.getStatus();
+
+        // Self-healing: If disconnected, try to initialize again
+        // This handles cases where the session died or wasn't started
+        if (status.status === 'disconnected') {
+            console.log('Status check found disconnected service. Triggering initialize...');
+            whatsappService.initialize().catch(err => console.error('Auto-init failed:', err));
+        }
+
         res.json(status);
     } catch (e) {
         console.error('Status Error:', e);
