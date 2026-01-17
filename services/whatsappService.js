@@ -1,149 +1,134 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode');
+const fs = require('fs');
 
-let client;
+let sock;
 let qrCodeData = null;
 let status = 'disconnected'; // disconnected, qr_ready, ready
 let readyTimestamp = null;
+let connectionUser = null;
 
-const initialize = () => {
-    console.log('Initializing WhatsApp Client...');
+const initialize = async () => {
+    console.log('Initializing WhatsApp Client (Baileys)...');
 
-    // Safety check: Avoid multiple initializations
-    if (client) return;
+    // Safety check: Avoid multiple initializations if already fully connected
+    // But Baileys handles reconnects, so we should be careful.
+    if (sock) return;
 
-    client = new Client({
-        authStrategy: new LocalAuth({ dataPath: './.wwebjs_auth' }),
-        puppeteer: {
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process', // <- this one doesn't works in Windows
-                '--disable-gpu'
-            ],
-            headless: 'new' // Updated for newer puppeteer versions
-        }
-    });
+    try {
+        const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
 
-    console.log('WhatsApp Client Initializing with Puppeteer config...');
-
-    client.on('qr', (qr) => {
-        console.log('WhatsApp QR Code Received');
-        // Convert to Data URL for frontend
-        qrcode.toDataURL(qr, (err, url) => {
-            if (err) {
-                console.error('Error generating QR', err);
-                return;
-            }
-            qrCodeData = url;
-            status = 'qr_ready';
+        sock = makeWASocket({
+            auth: state,
+            printQRInTerminal: true,
+            browser: Browsers.macOS('Desktop'), // Mimic a standard browser
+            syncFullHistory: false // Keep it light
         });
-    });
 
-    client.on('ready', () => {
-        console.log('WhatsApp Client is Ready!');
-        status = 'ready';
-        qrCodeData = null;
-        readyTimestamp = Date.now();
-    });
+        sock.ev.on('creds.update', saveCreds);
 
-    client.on('authenticated', () => {
-        console.log('WhatsApp Authenticated');
-        status = 'authenticated'; // Transitional
-    });
+        sock.ev.on('connection.update', async (update) => {
+            const { connection, lastDisconnect, qr } = update;
 
-    client.on('auth_failure', msg => {
-        console.error('WhatsApp Auth Failure', msg);
-        status = 'disconnected';
-    });
+            if (qr) {
+                console.log('WhatsApp QR Code Received');
+                status = 'qr_ready';
+                // Convert to data URL for frontend
+                try {
+                    qrCodeData = await qrcode.toDataURL(qr);
+                } catch (err) {
+                    console.error('Error generating QR', err);
+                }
+            }
 
-    client.on('disconnected', (reason) => {
-        console.log('WhatsApp Disconnected', reason);
-        status = 'disconnected';
-        client = null;
-        // Optional: Auto-reconnect logic could go here
-    });
+            if (connection === 'close') {
+                const shouldReconnect = (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut;
+                console.log('connection closed due to ', lastDisconnect?.error, ', reconnecting ', shouldReconnect);
+                status = 'disconnected';
+                qrCodeData = null;
+                connectionUser = null;
+                sock = null; // Clear socket instance
+                if (shouldReconnect) {
+                    initialize(); // Reconnect automatically
+                } else {
+                    console.log('Connection closed. You are logged out.');
+                    // Optional: Delete auth folder
+                }
+            } else if (connection === 'open') {
+                console.log('WhatsApp Client is Ready! (Baileys)');
+                status = 'ready';
+                qrCodeData = null;
+                readyTimestamp = Date.now();
 
-    client.initialize().catch(err => {
-        console.error("Failed to initialize WhatsApp Client:", err);
-    });
+                // Get user info
+                // sock.user.id is usually like "92333...@s.whatsapp.net:5@..."
+                const rawId = sock.user?.id || '';
+                connectionUser = rawId.split(':')[0]; // Extract phone number part
+                console.log('Connected User:', connectionUser);
+            }
+        });
+
+    } catch (err) {
+        console.error("Failed to initialize WhatsApp Client (Baileys):", err);
+    }
 };
 
 const getStatus = () => {
     return {
         status,
         qrCode: qrCodeData,
-        readyTimestamp
+        readyTimestamp,
+        user: connectionUser
     };
 };
 
 const sendMessage = async (to, text) => {
-    if (status !== 'ready' || !client) {
+    if (status !== 'ready' || !sock) {
+        console.error('SendMessage called but client not ready');
         throw new Error('WhatsApp client is not ready');
     }
 
     try {
-        // 'to' should be formatted as '923338638325@c.us'
-        // If user provides "0333...", replace leading 0 with 92 or passed generic format
-        // The robust way is to use client.getNumberId(to) but that's async and checks existence.
-
-        let chatId;
-        // Basic cleaning
-        const cleanNumber = to.replace(/\D/g, '');
-
-        // Ensure format: if starts with 03..., replace 0 with 92. If starts with 3, add 92 (assuming PK default).
-        // BUT better to rely on what user saved. 
-        // Admin likely saved full international format or "03..."
-        // I will do basic PK normalization if length is 11 starts with 0.
-
+        const inputNumber = String(to);
+        const cleanNumber = inputNumber.replace(/\D/g, '');
         let formattedNumber = cleanNumber;
         if (cleanNumber.length === 11 && cleanNumber.startsWith('0')) {
             formattedNumber = '92' + cleanNumber.substring(1);
         }
 
-        chatId = `${formattedNumber}@c.us`;
+        // Baileys uses @s.whatsapp.net for individuals
+        const jid = `${formattedNumber}@s.whatsapp.net`;
+        console.log(`[WhatsApp] Sending to JID: ${jid}`);
 
-        const response = await client.sendMessage(chatId, text);
+        // Sending text message
+        const response = await sock.sendMessage(jid, { text: text });
+        console.log('[WhatsApp] Message sent successfully');
+
         return { success: true, response };
     } catch (error) {
-        console.error('WhatsApp Send Error:', error);
+        console.error('WhatsApp Send Error Details:', error);
         throw error;
     }
 };
 
 const logout = async () => {
-    if (client) {
+    if (sock) {
         try {
-            await client.logout();
+            await sock.logout();
+            sock = null;
+            status = 'disconnected';
+            qrCodeData = null;
+            connectionUser = null;
+
+            // Clear auth folder logic if needed
+            if (fs.existsSync('auth_info_baileys')) {
+                fs.rmSync('auth_info_baileys', { recursive: true, force: true });
+            }
+            console.log('Logged out and cleared auth info.');
         } catch (e) {
-            console.error('Logout failed (client might be unresponsive):', e);
-        }
-        try {
-            await client.destroy(); // Ensure puppeteer moves on
-        } catch (e) { }
-
-        client = null;
-        status = 'disconnected';
-        qrCodeData = null;
-
-        // Optional: clear auth folder logic if needed, but client.logout usually handles session invalidation
-        const fs = require('fs');
-        if (fs.existsSync('./.wwebjs_auth')) {
-            try {
-                fs.rmSync('./.wwebjs_auth', { recursive: true, force: true });
-                console.log('Cleared .wwebjs_auth directory');
-            } catch (e) { console.error('Failed to clear auth dir', e); }
+            console.error('Logout failed:', e);
         }
     }
 };
 
-module.exports = {
-    initialize,
-    getStatus,
-    sendMessage,
-    logout
-};
+module.exports = { initialize, getStatus, sendMessage, logout };
