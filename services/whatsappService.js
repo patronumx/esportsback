@@ -35,8 +35,10 @@ const initialize = async () => {
             printQRInTerminal: true,
             browser: Browsers.macOS('Desktop'),
             syncFullHistory: false,
-            connectTimeoutMs: 10000,
-            defaultQueryTimeoutMs: 10000,
+            connectTimeoutMs: 60000,
+            defaultQueryTimeoutMs: 60000,
+            keepAliveIntervalMs: 10000,
+            retryRequestDelayMs: 250,
         });
 
         sock.ev.on('creds.update', saveCreds);
