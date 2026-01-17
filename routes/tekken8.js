@@ -147,13 +147,17 @@ router.delete('/registration/:id', verifyAdmin, async (req, res) => {
     }
 });
 
-module.exports = router;
 router.get('/admin/whatsapp/status', verifyAdmin, (req, res) => {
     if (!whatsappService) {
         return res.status(503).json({ message: 'WhatsApp Service Unavailable' });
     }
-    const status = whatsappService.getStatus();
-    res.json(status);
+    try {
+        const status = whatsappService.getStatus();
+        res.json(status);
+    } catch (e) {
+        console.error('Status Error:', e);
+        res.status(500).json({ message: 'Error fetching status', error: e.message });
+    }
 });
 
 // POST /api/tekken8/admin/notify (Admin Protected)
@@ -179,6 +183,12 @@ router.post('/admin/notify', verifyAdmin, async (req, res) => {
         res.json({ success: true, result });
     } catch (err) {
         console.error('WhatsApp Notification Error:', err);
+        // Distinguish between service not ready and other errors
+        if (err.message === 'WhatsApp client is not ready') {
+            return res.status(503).json({ message: 'WhatsApp Client Not Ready', error: err.message });
+        }
         res.status(500).json({ message: 'Failed to send WhatsApp message', error: err.message });
     }
 });
+
+module.exports = router;
