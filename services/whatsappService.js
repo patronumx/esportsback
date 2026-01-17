@@ -1,31 +1,42 @@
 const { makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode');
 const fs = require('fs');
-// const useMongoDBAuthState = require('./mongoAuth'); // Reverted
 
 let sock;
 let qrCodeData = null;
 let status = 'disconnected'; // disconnected, qr_ready, ready
 let readyTimestamp = null;
 let connectionUser = null;
+let isInitializing = false; // Prevent double-init
 
 const initialize = async () => {
     console.log('Initializing WhatsApp Client (Baileys)...');
 
-    // Safety check: Avoid multiple initializations if already fully connected
-    // But Baileys handles reconnects, so we should be careful.
-    if (sock) return;
+    if (sock || isInitializing) {
+        console.log('Skipping Init: Already connected or initializing.');
+        return;
+    }
+
+    isInitializing = true;
 
     try {
-        // Reverted to file auth as per request: session is temporary on Heroku
+        // AGGRESSIVE CLEANUP: If we are initializing, it means we want a fresh start.
+        // On Heroku, a restart might leave garbage files if persistent storage was somehow active? 
+        // Or if the previous socket didn't close cleanly.
+        if (fs.existsSync('auth_info_baileys')) {
+            console.log('Cleaning up old auth session...');
+            fs.rmSync('auth_info_baileys', { recursive: true, force: true });
+        }
+
         const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
-        // const { state, saveCreds } = await useMongoDBAuthState('patronum_wa_auth');
 
         sock = makeWASocket({
             auth: state,
             printQRInTerminal: true,
-            browser: Browsers.macOS('Desktop'), // Mimic a standard browser
-            syncFullHistory: false // Keep it light
+            browser: Browsers.macOS('Desktop'),
+            syncFullHistory: false,
+            connectTimeoutMs: 10000,
+            defaultQueryTimeoutMs: 10000,
         });
 
         sock.ev.on('creds.update', saveCreds);
@@ -36,7 +47,6 @@ const initialize = async () => {
             if (qr) {
                 console.log('WhatsApp QR Code Received');
                 status = 'qr_ready';
-                // Convert to data URL for frontend
                 try {
                     qrCodeData = await qrcode.toDataURL(qr);
                 } catch (err) {
@@ -50,35 +60,41 @@ const initialize = async () => {
                 status = 'disconnected';
                 qrCodeData = null;
                 connectionUser = null;
-                sock = null; // Clear socket instance
+                sock = null;
+                isInitializing = false; // Reset lock
                 if (shouldReconnect) {
-                    initialize(); // Reconnect automatically
+                    // Don't recursive init here, risk of loop. 
+                    // Let the scheduler or admin trigger it if needed, or simple retry.
+                    // For now, retry ONCE after delay?
+                    setTimeout(() => initialize(), 2000);
                 } else {
                     console.log('Connection closed. You are logged out.');
-                    // Optional: Delete auth folder
+                    if (fs.existsSync('auth_info_baileys')) {
+                        fs.rmSync('auth_info_baileys', { recursive: true, force: true });
+                    }
                 }
             } else if (connection === 'open') {
                 console.log('WhatsApp Client is Ready! (Baileys)');
                 status = 'ready';
                 qrCodeData = null;
                 readyTimestamp = Date.now();
+                isInitializing = false; // Unlock
 
-                // Get user info
-                // sock.user.id is usually like "92333...@s.whatsapp.net:5@..."
                 const rawId = sock.user?.id || '';
-                connectionUser = rawId.split(':')[0]; // Extract phone number part
+                connectionUser = rawId.split(':')[0];
                 console.log('Connected User:', connectionUser);
             }
         });
 
     } catch (err) {
         console.error("Failed to initialize WhatsApp Client (Baileys):", err);
+        isInitializing = false; // Unlock on error
     }
 };
 
 const getStatus = () => {
     return {
-        status,
+        status: isInitializing ? 'initializing' : status, // Report initializing state
         qrCode: qrCodeData,
         readyTimestamp,
         user: connectionUser
@@ -87,26 +103,17 @@ const getStatus = () => {
 
 const sendMessage = async (to, text) => {
     if (status !== 'ready' || !sock) {
-        console.error('SendMessage called but client not ready');
         throw new Error('WhatsApp client is not ready');
     }
 
     try {
-        const inputNumber = String(to);
-        const cleanNumber = inputNumber.replace(/\D/g, '');
-        let formattedNumber = cleanNumber;
-        if (cleanNumber.length === 11 && cleanNumber.startsWith('0')) {
-            formattedNumber = '92' + cleanNumber.substring(1);
+        const inputNumber = String(to).replace(/\D/g, '');
+        let formattedNumber = inputNumber;
+        if (inputNumber.length === 11 && inputNumber.startsWith('0')) {
+            formattedNumber = '92' + inputNumber.substring(1);
         }
-
-        // Baileys uses @s.whatsapp.net for individuals
         const jid = `${formattedNumber}@s.whatsapp.net`;
-        console.log(`[WhatsApp] Sending to JID: ${jid}`);
-
-        // Sending text message
         const response = await sock.sendMessage(jid, { text: text });
-        console.log('[WhatsApp] Message sent successfully');
-
         return { success: true, response };
     } catch (error) {
         console.error('WhatsApp Send Error Details:', error);
@@ -118,20 +125,21 @@ const logout = async () => {
     if (sock) {
         try {
             await sock.logout();
-            sock = null;
-            status = 'disconnected';
-            qrCodeData = null;
-            connectionUser = null;
-
-            // Clear auth folder logic if needed
-            if (fs.existsSync('auth_info_baileys')) {
-                fs.rmSync('auth_info_baileys', { recursive: true, force: true });
-            }
-            console.log('Logged out and cleared auth info.');
         } catch (e) {
             console.error('Logout failed:', e);
         }
     }
+    // Always clean up local state
+    sock = null;
+    status = 'disconnected';
+    qrCodeData = null;
+    connectionUser = null;
+    isInitializing = false;
+
+    if (fs.existsSync('auth_info_baileys')) {
+        fs.rmSync('auth_info_baileys', { recursive: true, force: true });
+    }
+    console.log('Logged out and cleared auth info.');
 };
 
 module.exports = { initialize, getStatus, sendMessage, logout };
