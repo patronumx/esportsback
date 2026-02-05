@@ -1,0 +1,199 @@
+const express = require('express');
+const router = express.Router();
+const Tekken8Registration = require('../models/Tekken8Registration');
+const multer = require('multer');
+const { uploadImage } = require('../services/cloudinaryService');
+
+// WhatsApp Service
+let whatsappService;
+try {
+    whatsappService = require('../services/whatsappService');
+} catch (e) {
+    console.warn('WhatsApp Service not available in this environment');
+}
+
+const jwt = require('jsonwebtoken');
+
+// Admin Credentials (Hardcoded for specific event admin usage)
+const ADMIN_USER = process.env.TEKKEN_ADMIN_USER || 'admin';
+const ADMIN_PASS = process.env.TEKKEN_ADMIN_PASS || 'tekken2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'tekken8_secret_key_2026';
+
+// Middleware for Admin Auth
+const verifyAdmin = (req, res, next) => {
+    const token = req.header('Authorization');
+    if (!token) return res.status(401).json({ message: 'Access Denied' });
+
+    try {
+        const verified = jwt.verify(token.replace('Bearer ', ''), JWT_SECRET);
+        req.user = verified;
+        next();
+    } catch (err) {
+        res.status(400).json({ message: 'Invalid Token' });
+    }
+};
+
+const upload = multer(); // Memory storage for Cloudinary
+
+// POST /api/tekken8/register
+router.post('/register', upload.single('paymentScreenshot'), async (req, res) => {
+    try {
+        const { fullName, email, phoneNumber, couponCode } = req.body;
+        const file = req.file;
+
+        // Validation
+        if (!fullName || !email || !phoneNumber || !file) {
+            return res.status(400).json({ message: 'Please fill in all required fields and attach proof of payment.' });
+        }
+
+        // Check for duplicate email
+        const existingUser = await Tekken8Registration.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ message: 'Registration with this Email already exists.' });
+        }
+
+        // Upload to Cloudinary
+        let paymentScreenshotUrl = '';
+        try {
+            const result = await uploadImage(file.buffer);
+            paymentScreenshotUrl = result.secure_url;
+        } catch (uploadError) {
+            console.error('Cloudinary Upload Error:', uploadError);
+            return res.status(500).json({ message: 'Failed to upload payment screenshot.' });
+        }
+
+        const newRegistration = new Tekken8Registration({
+            fullName,
+            email,
+            phoneNumber,
+            couponCode,
+            paymentScreenshot: paymentScreenshotUrl
+        });
+
+        await newRegistration.save();
+
+        res.status(201).json({ message: 'Registration successful! We will review your entry.', data: newRegistration });
+    } catch (err) {
+        console.error('Tekken 8 Registration Error:', err);
+        res.status(500).json({ message: 'Server error during registration.' });
+    }
+});
+
+// POST /api/tekken8/admin/login
+router.post('/admin/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === ADMIN_USER && password === ADMIN_PASS) {
+        const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
+        return res.json({ success: true, token });
+    }
+    return res.status(401).json({ message: 'Invalid Credentials' });
+});
+
+// GET /api/tekken8/registrations (Admin Protected)
+router.get('/registrations', verifyAdmin, async (req, res) => {
+    try {
+        const registrations = await Tekken8Registration.find().sort({ createdAt: -1 });
+        res.json(registrations);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching registrations' });
+    }
+});
+
+// PUT /api/tekken8/registration/:id (Admin Protected)
+router.put('/registration/:id', verifyAdmin, async (req, res) => {
+    try {
+        const { name, fullName, phone, phoneNumber, email, gameId, city, teamName, paymentScreenshot } = req.body;
+
+        const updatedRegistration = await Tekken8Registration.findByIdAndUpdate(
+            req.params.id,
+            {
+                $set: {
+                    fullName: fullName || name,
+                    phoneNumber: phoneNumber || phone,
+                    email,
+                    paymentScreenshot // Allow updating screenshot if needed
+                }
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedRegistration) {
+            return res.status(404).json({ message: 'Registration not found' });
+        }
+
+        res.json(updatedRegistration);
+    } catch (err) {
+        console.error('Update Error:', err);
+        res.status(500).json({ message: 'Failed to update registration' });
+    }
+});
+
+// DELETE /api/tekken8/registration/:id (Admin Protected)
+router.delete('/registration/:id', verifyAdmin, async (req, res) => {
+    try {
+        const deletedRegistration = await Tekken8Registration.findByIdAndDelete(req.params.id);
+
+        if (!deletedRegistration) {
+            return res.status(404).json({ message: 'Registration not found' });
+        }
+
+        res.json({ message: 'Registration deleted successfully' });
+    } catch (err) {
+        console.error('Delete Error:', err);
+        res.status(500).json({ message: 'Failed to delete registration' });
+    }
+});
+
+router.get('/admin/whatsapp/status', verifyAdmin, (req, res) => {
+    if (!whatsappService) {
+        return res.status(503).json({ message: 'WhatsApp Service Unavailable' });
+    }
+    try {
+        const status = whatsappService.getStatus();
+
+        // Self-healing: If disconnected, try to initialize again
+        // This handles cases where the session died or wasn't started
+        if (status.status === 'disconnected') {
+            console.log('Status check found disconnected service. Triggering initialize...');
+            whatsappService.initialize().catch(err => console.error('Auto-init failed:', err));
+        }
+
+        res.json(status);
+    } catch (e) {
+        console.error('Status Error:', e);
+        res.status(500).json({ message: 'Error fetching status', error: e.message });
+    }
+});
+
+// POST /api/tekken8/admin/notify (Admin Protected)
+router.post('/admin/notify', verifyAdmin, async (req, res) => {
+    const { phoneNumber, message, registrationId } = req.body;
+
+    if (!phoneNumber || !message) {
+        return res.status(400).json({ message: 'Phone number and message are required' });
+    }
+
+    if (!whatsappService) {
+        return res.status(503).json({ message: 'WhatsApp Service Unavailable' });
+    }
+
+    try {
+        const result = await whatsappService.sendMessage(phoneNumber, message);
+
+        // If registrationId is provided, mark as verified
+        if (registrationId) {
+            await Tekken8Registration.findByIdAndUpdate(registrationId, { isVerified: true });
+        }
+
+        res.json({ success: true, result });
+    } catch (err) {
+        console.error('WhatsApp Notification Error:', err);
+        // Distinguish between service not ready and other errors
+        if (err.message === 'WhatsApp client is not ready') {
+            return res.status(503).json({ message: 'WhatsApp Client Not Ready', error: err.message });
+        }
+        res.status(500).json({ message: 'Failed to send WhatsApp message', error: err.message });
+    }
+});
+
+module.exports = router;
