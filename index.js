@@ -152,7 +152,7 @@ if (!process.env.VERCEL) {
 // Start server if run directly (Local Development)
 if (require.main === module) {
     connectDB().then(() => {
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server running on port ${PORT}`);
 
             // Start background services after server is up (localhost only)
@@ -178,4 +178,4 @@ connectDB();
 
 module.exports = app;
 
-// Force Backend Update: 1.1
+// Force Backend Update: 1.2

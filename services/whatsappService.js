@@ -49,19 +49,25 @@ const initialize = async () => {
             }
 
             if (connection === 'close') {
-                const shouldReconnect = (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut;
+                const statusCode = (lastDisconnect?.error)?.output?.statusCode;
+                const isConflict = statusCode === DisconnectReason.connectionReplaced || statusCode === 440;
+                const shouldReconnect = statusCode !== DisconnectReason.loggedOut && !isConflict;
+
                 console.log('connection closed due to ', lastDisconnect?.error, ', reconnecting ', shouldReconnect);
                 status = 'disconnected';
                 qrCodeData = null;
                 connectionUser = null;
                 sock = null;
                 isInitializing = false; // Reset lock
+
+                if (isConflict) {
+                    console.warn('⚠️ WhatsApp Conflict Detected! Another client connected. Stopping auto-reconnect to prevent loop.');
+                }
+
                 if (shouldReconnect) {
-                    // Don't recursive init here, risk of loop. 
-                    // Let the scheduler or admin trigger it if needed, or simple retry.
-                    // For now, retry ONCE after delay?
-                    setTimeout(() => initialize(), 2000);
-                } else {
+                    // Simple backoff or delay
+                    setTimeout(() => initialize(), 5000);
+                } else if (statusCode === DisconnectReason.loggedOut) {
                     console.log('Connection closed. You are logged out.');
                     if (fs.existsSync('auth_info_baileys')) {
                         fs.rmSync('auth_info_baileys', { recursive: true, force: true });

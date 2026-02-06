@@ -27,6 +27,11 @@ const verifyAdmin = (req, res, next) => {
 
 console.log('[MobaRoutes] Loaded');
 
+router.use((req, res, next) => {
+    console.log(`[Moba Router] ${req.method} ${req.path}`);
+    next();
+});
+
 // Login Route
 router.post('/admin/login', (req, res) => {
     console.log('[MobaRoutes] Login attempt:', req.body);
@@ -77,23 +82,18 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// Get MLBB registrations
-router.get('/mlbb/registrations', verifyAdmin, async (req, res) => {
+// Get registrations for a specific game
+router.get('/:game/registrations', verifyAdmin, async (req, res) => {
     try {
-        const registrations = await MobaRegistration.find({ game: 'MLBB' }).sort({ createdAt: -1 });
-        res.json(registrations);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching MLBB registrations' });
-    }
-});
+        const { game } = req.params;
+        const Model = getModel(game);
+        const filter = game.toLowerCase() === 'hok' ? {} : { game: game.toUpperCase() };
 
-// Get HOK registrations
-router.get('/hok/registrations', verifyAdmin, async (req, res) => {
-    try {
-        const registrations = await HokRegistration.find().sort({ createdAt: -1 });
+        const registrations = await Model.find(filter).sort({ createdAt: -1 });
         res.json(registrations);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching HOK registrations' });
+        console.error(`Error fetching ${req.params.game} registrations:`, error);
+        res.status(500).json({ message: `Error fetching ${req.params.game} registrations` });
     }
 });
 

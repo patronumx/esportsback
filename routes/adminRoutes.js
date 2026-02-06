@@ -237,6 +237,49 @@ router.post('/players/:id/broadcast', async (req, res) => {
     }
 });
 
+router.post('/players/broadcast-bulk', async (req, res) => {
+    try {
+        const { playerIds, message } = req.body;
+
+        if (!playerIds || !Array.isArray(playerIds) || playerIds.length === 0) {
+            return res.status(400).json({ message: 'No players selected' });
+        }
+
+        const players = await Player.find({ _id: { $in: playerIds } });
+
+        let successCount = 0;
+        let failCount = 0;
+
+        if (!whatsappService) {
+            return res.status(503).json({ message: 'WhatsApp service not available' });
+        }
+
+        for (const player of players) {
+            const phone = player.phone || player.phoneNumber;
+            if (phone) {
+                try {
+                    const formattedMessage = `*Broadcast Message from Patronum Admin*\n\nHello ${player.ign},\n\n${message}`;
+                    await whatsappService.sendMessage(phone, formattedMessage);
+                    successCount++;
+                } catch (e) {
+                    console.error(`Failed to send to ${player.ign}:`, e);
+                    failCount++;
+                }
+            } else {
+                failCount++;
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `Broadcast complete. Sent: ${successCount}, Failed: ${failCount}`,
+            details: { successCount, failCount }
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 router.post('/teams/:id/broadcast', async (req, res) => {
     try {
         const team = await Team.findById(req.params.id);
